@@ -1,0 +1,43 @@
+---
+name: pushlog-development
+description: Разработка Push log по спецификациям. Использовать при реализации фич, рефакторинге или когда пользователь просит разработать/реализовать что-то в проекте pushlog.
+---
+
+# Разработка Push log
+
+## Перед началом
+
+1. **Прочитать релевантные спецификации** в `spec/`:
+   - spec/README.md — индекс документов (корень репозитория)
+   - spec/solution-overview.md — поток работы и сценарии
+   - spec/requirements.md — MVP, user stories, edge cases
+   - spec/concepts.md — термины (Set, DayLog, Streak, Goal, ExerciseType)
+   - spec/domain.md — доменные модели, примеры данных
+   - spec/ui.md — экраны и компоненты
+   - spec/architecture.md — FSD-слои, Zustand, StorageAdapter, data flow
+   - spec/non-functional.md — производительность, offline, хранение
+
+2. **Проверить правила кода** в docs/coding-standards.md:
+   - FSD: app → pages → widgets → features → entities → shared
+   - Публичный API через index.ts
+   - Локализация: переводы внутри слайса, injectTranslation, useTranslation
+
+## Workflow
+
+1. Определить, в какой слой/слайс помещается код
+2. Создать структуру по FSD (ui, model, api и т.д.)
+3. Реализовать, сверяясь со спецификацией
+4. Добавить переводы в слайс (translations.ts, TRANS_NS)
+5. **Актуализировать спецификацию** — при любых изменениях обновлять spec/
+6. Запустить `npm run check` перед завершением
+
+## Стек
+
+- shadcn + Tailwind — UI. Компоненты в `src/components/ui/`, импорт: `@/components/ui/...`
+
+## Ключевые решения (из spec)
+
+- IndexedDB (через `idb`) + абстракция `StorageAdapter` в shared
+- Zustand — стейт в `src/app/store/`
+- react-i18next, колоцированные переводы
+- Домен: учёт подходов (отжимания), local-first, без бэкенда в MVP
