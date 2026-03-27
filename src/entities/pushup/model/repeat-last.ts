@@ -3,12 +3,12 @@ import type { DayKey } from "@/shared/lib/day-key";
 import { sortSetsByCreatedAtAsc } from "./day-sets";
 import type { PushlogSet } from "./types";
 
-/** Повторить последний подход: сначала последний за сегодня, иначе последний в истории для типа по умолчанию. */
-export function getRepeatLastReps(sets: PushlogSet[], todayDayKey: DayKey): number | null {
+/** Повторить последний подход: сначала последний за выбранный день, иначе последний в истории для типа по умолчанию. */
+export function getRepeatLastReps(sets: PushlogSet[], targetDayKey: DayKey): number | null {
 	const forType = sets.filter((s) => s.exerciseTypeId === DEFAULT_EXERCISE_TYPE_ID);
-	const todaySets = forType.filter((s) => s.dayKey === todayDayKey);
-	if (todaySets.length > 0) {
-		const sorted = sortSetsByCreatedAtAsc(todaySets);
+	const daySets = forType.filter((s) => s.dayKey === targetDayKey);
+	if (daySets.length > 0) {
+		const sorted = sortSetsByCreatedAtAsc(daySets);
 		return sorted[sorted.length - 1].reps;
 	}
 	if (forType.length === 0) return null;

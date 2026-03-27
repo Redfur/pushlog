@@ -1,13 +1,13 @@
 import { useCallback, useRef } from "react";
 import { getRepeatLastReps, usePushlogStore } from "@/entities/pushup";
+import type { DayKey } from "@/shared/lib/day-key";
 import { nowDayKey } from "@/shared/lib/day-key";
 
 const TAP_GUARD_MS = 220;
 
-export function useAddSet() {
+export function useAddSet(dayKey: DayKey) {
 	const addSet = usePushlogStore((s) => s.addSet);
 	const sets = usePushlogStore((s) => s.sets);
-	const timeZone = usePushlogStore((s) => s.timeZone);
 	const guard = useRef(false);
 
 	const runGuarded = useCallback(async (fn: () => Promise<void>) => {
@@ -22,14 +22,22 @@ export function useAddSet() {
 		}
 	}, []);
 
-	const addPresetReps = useCallback((reps: number) => runGuarded(() => addSet(reps)), [addSet, runGuarded]);
+	const addReps = useCallback(
+		(reps: number) => runGuarded(() => addSet(reps, { dayKey })),
+		[addSet, dayKey, runGuarded],
+	);
 
 	const repeatLast = useCallback(() => {
-		const today = nowDayKey(timeZone);
-		const reps = getRepeatLastReps(sets, today);
+		const reps = getRepeatLastReps(sets, dayKey);
 		if (reps === null) return;
-		void runGuarded(() => addSet(reps));
-	}, [addSet, runGuarded, sets, timeZone]);
+		void runGuarded(() => addSet(reps, { dayKey }));
+	}, [addSet, dayKey, runGuarded, sets]);
 
-	return { addPresetReps, repeatLast };
+	return { addReps, repeatLast };
+}
+
+/** Только для контекста «сегодня» без явного dayKey. */
+export function useAddSetToday() {
+	const timeZone = usePushlogStore((s) => s.timeZone);
+	return useAddSet(nowDayKey(timeZone));
 }

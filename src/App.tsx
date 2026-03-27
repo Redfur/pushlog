@@ -1,11 +1,14 @@
 import { Activity, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePushlogStore } from "@/entities/pushup";
+import { useTodayDayKey } from "@/hooks/use-today-day-key";
+import { DayPage } from "@/pages/day";
 import { HomePage } from "@/pages/home";
 import { StatsPage } from "@/pages/stats";
 import { COMMON_NS } from "@/shared/i18n";
+import { resolveDayRouteParam } from "@/shared/lib/day-key";
 import { cn } from "@/shared/lib/utils";
 
 import "@/widgets/main-screen";
@@ -31,6 +34,31 @@ function StorageErrorBanner() {
 	);
 }
 
+function HomeNavLink() {
+	const { t } = useTranslation(COMMON_NS);
+	const loc = useLocation();
+	const timeZone = usePushlogStore((s) => s.timeZone);
+	const todayK = useTodayDayKey(timeZone);
+	const m = loc.pathname.match(/^\/day\/([^/]+)$/);
+	const resolved = m?.[1] ? resolveDayRouteParam(m[1], timeZone) : null;
+	const isHome = resolved !== null && resolved === todayK;
+
+	return (
+		<NavLink
+			to="/day/today"
+			className={({ isActive }) =>
+				cn(
+					"text-muted-foreground flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-xs font-medium",
+					(isActive || isHome) && "text-foreground bg-accent",
+				)
+			}
+		>
+			<Home className="size-5" />
+			<span>{t("navHome")}</span>
+		</NavLink>
+	);
+}
+
 function AppShell() {
 	const { t } = useTranslation(COMMON_NS);
 	const lastError = usePushlogStore((s) => s.lastError);
@@ -41,25 +69,14 @@ function AppShell() {
 			<main className={cn("flex flex-1 flex-col pb-16", lastError && "pt-10")}>
 				<Routes>
 					<Route path="/" element={<HomePage />} />
+					<Route path="/day/:dayKey" element={<DayPage />} />
 					<Route path="/stats" element={<StatsPage />} />
-					<Route path="*" element={<Navigate to="/" replace />} />
+					<Route path="*" element={<Navigate to="/day/today" replace />} />
 				</Routes>
 			</main>
 			<nav className="bg-background/95 supports-[backdrop-filter]:bg-background/80 border-border fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur">
 				<div className="mx-auto flex max-w-lg justify-around gap-2 p-2">
-					<NavLink
-						to="/"
-						end
-						className={({ isActive }) =>
-							cn(
-								"text-muted-foreground flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-xs font-medium",
-								isActive && "text-foreground bg-accent",
-							)
-						}
-					>
-						<Home className="size-5" />
-						<span>{t("navHome")}</span>
-					</NavLink>
+					<HomeNavLink />
 					<NavLink
 						to="/stats"
 						className={({ isActive }) =>

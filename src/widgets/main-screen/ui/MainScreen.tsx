@@ -2,20 +2,34 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
+import { useAddSet } from "@/features/add-set";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
+import { canLogSetsForDay, type DayKey, offsetDayKey } from "@/shared/lib/day-key";
+import { formatDayKeyLabel } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
+import { DayNavigation } from "./DayNavigation";
 import { DayProgress } from "./DayProgress";
 import { DaySetsList } from "./DaySetsList";
 import { QuickAddPanel } from "./QuickAddPanel";
 
-export function MainScreen() {
+type Props = {
+	dayKey: DayKey;
+};
+
+export function MainScreen({ dayKey }: Props) {
 	const { t } = useTranslation(MAIN_SCREEN_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const timeZone = usePushlogStore((s) => s.timeZone);
 	const todayKey = useTodayDayKey(timeZone);
+	const yesterdayKey = offsetDayKey(todayKey, -1, timeZone);
+	const isToday = dayKey === todayKey;
+	const isYesterday = dayKey === yesterdayKey;
+	const canLog = canLogSetsForDay(dayKey, timeZone);
 
-	const todaySets = useMemo(() => filterSetsByDayKey(sets, todayKey), [sets, todayKey]);
+	const { addReps, repeatLast } = useAddSet(dayKey);
+
+	const daySets = useMemo(() => filterSetsByDayKey(sets, dayKey), [sets, dayKey]);
 
 	if (!hydrated) {
 		return (
@@ -29,10 +43,17 @@ export function MainScreen() {
 
 	return (
 		<div className="flex flex-col gap-6 p-4">
-			<h1 className="sr-only">{t("title")}</h1>
-			<DayProgress sets={sets} dayKey={todayKey} />
-			<QuickAddPanel />
-			<DaySetsList sets={todaySets} />
+			<h1 className="sr-only">
+				{isToday
+					? t("title")
+					: isYesterday
+						? t("titleYesterday")
+						: t("titleDay", { date: formatDayKeyLabel(dayKey, "ru-RU") })}
+			</h1>
+			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
+			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
+			<QuickAddPanel canLog={canLog} addReps={addReps} repeatLast={repeatLast} />
+			<DaySetsList sets={daySets} />
 		</div>
 	);
 }

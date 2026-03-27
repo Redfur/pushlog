@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { DEFAULT_EXERCISE_TYPE_ID } from "@/shared/config/pushlog";
-import { getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
+import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
 import { getStorageAdapter } from "@/shared/lib/storage";
 import type { Goal, PushlogSet } from "./types";
@@ -14,7 +14,8 @@ type PushlogState = {
 	lastError: string | null;
 	timeZone: string;
 	hydrate: () => Promise<void>;
-	addSet: (reps: number) => Promise<void>;
+	/** `dayKey` — календарный день записи; по умолчанию «сегодня». Нельзя логировать за будущие дни. */
+	addSet: (reps: number, options?: { dayKey?: string }) => Promise<void>;
 	removeSet: (id: string) => Promise<void>;
 	clearError: () => void;
 };
@@ -45,16 +46,19 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		}
 	},
 
-	addSet: async (reps: number) => {
+	addSet: async (reps: number, options?: { dayKey?: string }) => {
 		if (reps <= 0 || !Number.isFinite(reps)) return;
 
 		const { timeZone } = get();
+		const targetDayKey = options?.dayKey ?? nowDayKey(timeZone);
+		if (!canLogSetsForDay(targetDayKey, timeZone)) return;
+
 		const row: PushlogSet = {
 			id: generateId(),
 			exerciseTypeId: DEFAULT_EXERCISE_TYPE_ID,
 			reps: Math.floor(reps),
 			createdAt: new Date().toISOString(),
-			dayKey: nowDayKey(timeZone),
+			dayKey: targetDayKey,
 			version: SET_VERSION,
 		};
 
