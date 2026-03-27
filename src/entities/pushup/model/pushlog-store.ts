@@ -17,6 +17,8 @@ type PushlogState = {
 	/** `dayKey` — календарный день записи; по умолчанию «сегодня». Нельзя логировать за будущие дни. */
 	addSet: (reps: number, options?: { dayKey?: string }) => Promise<void>;
 	removeSet: (id: string) => Promise<void>;
+	setDailyGoal: (targetRepsPerDay: number) => Promise<void>;
+	clearDailyGoal: () => Promise<void>;
 	clearError: () => void;
 };
 
@@ -87,6 +89,38 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			set({ sets: prev, lastError: message });
+		}
+	},
+
+	setDailyGoal: async (targetRepsPerDay: number) => {
+		if (targetRepsPerDay <= 0 || !Number.isFinite(targetRepsPerDay)) return;
+		const n = Math.floor(targetRepsPerDay);
+		const now = new Date().toISOString();
+		const goal: Goal = {
+			id: generateId(),
+			exerciseTypeId: DEFAULT_EXERCISE_TYPE_ID,
+			targetRepsPerDay: n,
+			effectiveFrom: now,
+			updatedAt: now,
+		};
+		const prevGoal = get().goal;
+		set({ goal, lastError: null });
+		try {
+			await getStorageAdapter().putGoal(goal);
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ goal: prevGoal, lastError: message });
+		}
+	},
+
+	clearDailyGoal: async () => {
+		const prev = get().goal;
+		set({ goal: null, lastError: null });
+		try {
+			await getStorageAdapter().clearGoal();
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ goal: prev, lastError: message });
 		}
 	},
 }));

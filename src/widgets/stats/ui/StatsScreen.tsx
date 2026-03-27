@@ -3,8 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { computeStats, usePushlogStore } from "@/entities/pushup";
+import { GoalSettingsCard } from "@/features/set-daily-goal";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { STATS_NS } from "../translations";
+import { StatsHeatmap } from "./StatsHeatmap";
+import { StatsTrendCharts } from "./StatsTrendCharts";
 
 export function StatsScreen() {
 	const { t } = useTranslation(STATS_NS);
@@ -27,6 +30,8 @@ export function StatsScreen() {
 	return (
 		<div className="flex flex-col gap-4 p-4">
 			<h1 className="text-xl font-semibold">{t("title")}</h1>
+
+			<GoalSettingsCard />
 
 			<div className="grid gap-3 sm:grid-cols-2">
 				<Card>
@@ -83,7 +88,8 @@ export function StatsScreen() {
 				</CardContent>
 			</Card>
 
-			<p className="text-muted-foreground text-sm">{t("heatmapSoon")}</p>
+			<StatsTrendCharts sets={sets} todayKey={todayKey} timeZone={timeZone} />
+			<StatsHeatmap sets={sets} todayKey={todayKey} timeZone={timeZone} />
 		</div>
 	);
 }

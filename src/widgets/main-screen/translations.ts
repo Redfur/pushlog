@@ -6,6 +6,7 @@ export const mainScreenTranslations = {
 		titleYesterday: "Вчера",
 		titleDay: "{{date}}",
 		totalToday: "Всего за день: {{count}}",
+		progressTowardGoal: "{{current}} / {{target}}",
 		empty: "Пока нет подходов — нажмите кнопку ниже.",
 		quickAdd: "Быстро добавить",
 		quickAddInputAria: "Своё число повторений, Enter — добавить",

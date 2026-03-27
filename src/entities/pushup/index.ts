@@ -1,5 +1,14 @@
 export { computeStats } from "./model/compute-stats";
 export { computeStreak } from "./model/compute-streak";
+export type { DailyActivity, HeatmapCell } from "./model/daily-aggregates";
+export {
+	buildDailyActivitySeries,
+	buildHeatmapGrid,
+	enumerateDayKeysInclusive,
+	lastNDaysInclusive,
+	mondayOfWeekContaining,
+	weekdayMonday0,
+} from "./model/daily-aggregates";
 export {
 	filterSetsByDayKey,
 	sortSetsByCreatedAtAsc,
