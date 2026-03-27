@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { computeStats, usePushlogStore } from "@/entities/pushup";
 import { GoalSettingsCard } from "@/features/set-daily-goal";
+import { TimezoneSelect } from "@/features/set-timezone";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
@@ -20,16 +21,25 @@ export function StatsScreen() {
 
 	if (!hydrated) {
 		return (
-			<div className="flex flex-col gap-4 p-4">
+			<div className="flex flex-col gap-4 py-4">
 				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-32 w-full rounded-lg" />
+				<div className="grid gap-3 sm:grid-cols-2">
+					<Skeleton className="h-24 rounded-lg" />
+					<Skeleton className="h-24 rounded-lg" />
+					<Skeleton className="h-24 rounded-lg" />
+					<Skeleton className="h-24 rounded-lg" />
+				</div>
+				<Skeleton className="h-24 w-full rounded-lg" />
+				<Skeleton className="h-56 w-full rounded-lg" />
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-col gap-4 p-4">
+		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
 			<h1 className="text-xl font-semibold">{t("title")}</h1>
+
+			<TimezoneSelect />
 
 			<GoalSettingsCard />
 

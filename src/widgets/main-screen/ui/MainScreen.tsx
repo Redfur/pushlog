@@ -33,7 +33,7 @@ export function MainScreen({ dayKey }: Props) {
 
 	if (!hydrated) {
 		return (
-			<div className="flex flex-col gap-4 p-4">
+			<div className="flex flex-col gap-4 py-4">
 				<Skeleton className="h-24 w-full rounded-lg" />
 				<Skeleton className="h-32 w-full rounded-lg" />
 				<Skeleton className="h-40 w-full rounded-lg" />
@@ -42,7 +42,7 @@ export function MainScreen({ dayKey }: Props) {
 	}
 
 	return (
-		<div className="flex flex-col gap-6 p-4">
+		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
 			<h1 className="sr-only">
 				{isToday
 					? t("title")

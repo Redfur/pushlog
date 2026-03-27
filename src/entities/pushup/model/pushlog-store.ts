@@ -3,6 +3,14 @@ import { DEFAULT_EXERCISE_TYPE_ID } from "@/shared/config/pushlog";
 import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
 import { getStorageAdapter } from "@/shared/lib/storage";
+import {
+	clearStoredTimeZone,
+	isValidTimeZoneId,
+	readStoredTimeZone,
+	TIMEZONE_AUTO_SELECT_VALUE,
+	writeStoredTimeZone,
+} from "@/shared/lib/timezone-preference";
+import { sortSetsByCreatedAtAsc } from "./day-sets";
 import type { Goal, PushlogSet } from "./types";
 
 const SET_VERSION = 1;
@@ -15,10 +23,12 @@ type PushlogState = {
 	timeZone: string;
 	hydrate: () => Promise<void>;
 	/** `dayKey` — календарный день записи; по умолчанию «сегодня». Нельзя логировать за будущие дни. */
-	addSet: (reps: number, options?: { dayKey?: string }) => Promise<void>;
-	removeSet: (id: string) => Promise<void>;
+	addSet: (reps: number, options?: { dayKey?: string }) => Promise<string | undefined>;
+	removeSet: (id: string) => Promise<boolean>;
+	restoreSet: (row: PushlogSet) => Promise<boolean>;
 	setDailyGoal: (targetRepsPerDay: number) => Promise<void>;
 	clearDailyGoal: () => Promise<void>;
+	setTimeZone: (timeZone: string) => void;
 	clearError: () => void;
 };
 
@@ -33,6 +43,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 	hydrate: async () => {
 		const storage = getStorageAdapter();
+		const tz = readStoredTimeZone() ?? getDefaultTimeZone();
 		try {
 			const [loadedSets, goal] = await Promise.all([storage.getAllSets(), storage.getGoal()]);
 			set({
@@ -40,20 +51,31 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 				goal,
 				hydrated: true,
 				lastError: null,
-				timeZone: getDefaultTimeZone(),
+				timeZone: tz,
 			});
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
-			set({ lastError: message, hydrated: true });
+			set({ lastError: message, hydrated: true, timeZone: tz });
 		}
 	},
 
+	setTimeZone: (timeZone: string) => {
+		if (timeZone === TIMEZONE_AUTO_SELECT_VALUE) {
+			clearStoredTimeZone();
+			set({ timeZone: getDefaultTimeZone() });
+			return;
+		}
+		if (!isValidTimeZoneId(timeZone)) return;
+		writeStoredTimeZone(timeZone);
+		set({ timeZone });
+	},
+
 	addSet: async (reps: number, options?: { dayKey?: string }) => {
-		if (reps <= 0 || !Number.isFinite(reps)) return;
+		if (reps <= 0 || !Number.isFinite(reps)) return undefined;
 
 		const { timeZone } = get();
 		const targetDayKey = options?.dayKey ?? nowDayKey(timeZone);
-		if (!canLogSetsForDay(targetDayKey, timeZone)) return;
+		if (!canLogSetsForDay(targetDayKey, timeZone)) return undefined;
 
 		const row: PushlogSet = {
 			id: generateId(),
@@ -68,27 +90,45 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 		try {
 			await getStorageAdapter().putSet(row);
+			return row.id;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			set((s) => ({
 				lastError: message,
 				sets: s.sets.filter((x) => x.id !== row.id),
 			}));
+			return undefined;
 		}
 	},
 
 	removeSet: async (id: string) => {
 		const prev = get().sets;
 		const removed = prev.find((x) => x.id === id);
-		if (!removed) return;
+		if (!removed) return false;
 
 		set({ sets: prev.filter((x) => x.id !== id), lastError: null });
 
 		try {
 			await getStorageAdapter().deleteSet(id);
+			return true;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			set({ sets: prev, lastError: message });
+			return false;
+		}
+	},
+
+	restoreSet: async (row: PushlogSet) => {
+		const prev = get().sets;
+		const next = sortSetsByCreatedAtAsc([...prev, row]);
+		set({ sets: next, lastError: null });
+		try {
+			await getStorageAdapter().putSet(row);
+			return true;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ sets: prev, lastError: message });
+			return false;
 		}
 	},
 

@@ -1,12 +1,17 @@
 import { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { getRepeatLastReps, usePushlogStore } from "@/entities/pushup";
+import { COMMON_NS } from "@/shared/i18n";
 import type { DayKey } from "@/shared/lib/day-key";
 import { nowDayKey } from "@/shared/lib/day-key";
 
 const TAP_GUARD_MS = 220;
 
 export function useAddSet(dayKey: DayKey) {
+	const { t } = useTranslation(COMMON_NS);
 	const addSet = usePushlogStore((s) => s.addSet);
+	const removeSet = usePushlogStore((s) => s.removeSet);
 	const sets = usePushlogStore((s) => s.sets);
 	const guard = useRef(false);
 
@@ -23,15 +28,40 @@ export function useAddSet(dayKey: DayKey) {
 	}, []);
 
 	const addReps = useCallback(
-		(reps: number) => runGuarded(() => addSet(reps, { dayKey })),
-		[addSet, dayKey, runGuarded],
+		(reps: number) =>
+			runGuarded(async () => {
+				const id = await addSet(reps, { dayKey });
+				if (id) {
+					toast.success(t("toastAdded"), {
+						action: {
+							label: t("undo"),
+							onClick: () => {
+								void removeSet(id);
+							},
+						},
+					});
+				}
+			}),
+		[addSet, dayKey, removeSet, runGuarded, t],
 	);
 
 	const repeatLast = useCallback(() => {
 		const reps = getRepeatLastReps(sets, dayKey);
 		if (reps === null) return;
-		void runGuarded(() => addSet(reps, { dayKey }));
-	}, [addSet, dayKey, runGuarded, sets]);
+		void runGuarded(async () => {
+			const id = await addSet(reps, { dayKey });
+			if (id) {
+				toast.success(t("toastAdded"), {
+					action: {
+						label: t("undo"),
+						onClick: () => {
+							void removeSet(id);
+						},
+					},
+				});
+			}
+		});
+	}, [addSet, dayKey, removeSet, runGuarded, sets, t]);
 
 	return { addReps, repeatLast };
 }
