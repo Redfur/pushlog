@@ -38,6 +38,6 @@ description: Разработка Push log по спецификациям. Ис
 ## Ключевые решения (из spec)
 
 - IndexedDB (через `idb`) + абстракция `StorageAdapter` в shared
-- Zustand — стейт в `src/app/store/`
+- Zustand — `usePushlogStore` в `src/entities/pushup/model/pushlog-store.ts`
 - react-i18next, колоцированные переводы
 - Домен: учёт подходов (отжимания), local-first, без бэкенда в MVP

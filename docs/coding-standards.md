@@ -26,14 +26,13 @@ app → pages → widgets → features → entities → shared
 src/
 ├── components/          # shadcn UI-компоненты (Button, Input и т.д.)
 │   └── ui/              # импорт: @/components/ui/...
-├── app/                 # Точка входа, провайдеры, стор
+├── app/                 # Точка входа, провайдеры
 │   ├── providers/
-│   ├── store/           # Zustand store
 │   └── styles/
 ├── pages/               # Страницы приложения
 ├── widgets/             # Крупные самодостаточные блоки UI
 ├── features/           # Действия пользователя (переиспользуемые)
-├── entities/           # Бизнес-сущности
+├── entities/           # Бизнес-сущности (в т.ч. Zustand store рядом с доменом, см. pushup)
 └── shared/             # Переиспользуемый код без бизнес-логики
     ├── lib/             # Утилиты, хелперы, injectTranslation
     ├── api/             # API-клиент (если есть бэкенд)

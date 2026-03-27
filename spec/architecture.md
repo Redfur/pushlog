@@ -28,10 +28,10 @@
 
 ## State management: Zustand
 
-**Расположение:** `src/app/store/` (согласовано с `docs/coding-standards.md`), например:
+**Расположение:** `src/entities/pushup/model/pushlog-store.ts` (store рядом с доменом, чтобы слой `features` не импортировал `app`).
 
-- `src/app/store/pushlog-store.ts` — создание store
-- `src/app/store/hooks.ts` — селекторы при необходимости
+- Экспорт: `usePushlogStore` из `@/entities/pushup`
+- Гидрация при старте: `PushlogHydrationProvider` в `src/app/providers/`
 
 **Структура состояния (логическая)**
 
