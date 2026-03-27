@@ -10,6 +10,9 @@ import { STATS_NS } from "../translations";
 
 type Period = 7 | 30;
 
+/** Высота области графика (как `h-56`); число нужно для `ResponsiveContainer`, иначе при `height="100%"` до ResizeObserver размеры бывают -1 и Recharts ругается в консоли. */
+const TREND_CHART_HEIGHT_PX = 224;
+
 function shortDayLabel(dayKey: DayKey, locale: string): string {
 	const [y, m, d] = dayKey.split("-").map(Number);
 	const date = new Date(y, m - 1, d);
@@ -82,8 +85,8 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 					<p className="text-muted-foreground text-sm">{t("trendsEmpty")}</p>
 				) : (
 					<>
-						<div className="h-56 w-full min-w-0">
-							<ResponsiveContainer width="100%" height="100%">
+						<div className="h-56 w-full min-w-0 shrink-0">
+							<ResponsiveContainer width="100%" height={TREND_CHART_HEIGHT_PX} minWidth={0}>
 								<ComposedChart data={rows} margin={{ top: 12, right: 8, left: 4, bottom: 4 }} barCategoryGap="12%">
 									<CartesianGrid strokeDasharray="3 3" className="stroke-border" />
 									<XAxis
