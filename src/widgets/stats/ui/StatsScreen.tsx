@@ -3,8 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { computeStats, usePushlogStore } from "@/entities/pushup";
-import { GoalSettingsCard } from "@/features/set-daily-goal";
-import { TimezoneSelect } from "@/features/set-timezone";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
@@ -38,10 +36,6 @@ export function StatsScreen() {
 	return (
 		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
 			<h1 className="text-xl font-semibold">{t("title")}</h1>
-
-			<TimezoneSelect />
-
-			<GoalSettingsCard />
 
 			<div className="grid gap-3 sm:grid-cols-2">
 				<Card>

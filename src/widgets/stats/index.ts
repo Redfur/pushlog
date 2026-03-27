@@ -1,5 +1,3 @@
-import "@/features/set-daily-goal";
-import "@/features/set-timezone";
 import { injectTranslation } from "@/shared/lib/i18n";
 import { STATS_NS, statsTranslations } from "./translations";
 

@@ -1,4 +1,4 @@
-import { Activity, Home } from "lucide-react";
+import { Activity, Home, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
@@ -65,6 +65,24 @@ function StatsNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
 	);
 }
 
+function SettingsNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
+	const { t } = useTranslation(COMMON_NS);
+	if (variant === "sidebar") {
+		return (
+			<NavLink to="/settings" className={({ isActive }) => navLinkClass({ isActive })}>
+				<Settings className="size-5 shrink-0" />
+				<span>{t("navSettings")}</span>
+			</NavLink>
+		);
+	}
+	return (
+		<NavLink to="/settings" className={({ isActive }) => navLinkClassMobile({ isActive })}>
+			<Settings className="size-5" />
+			<span>{t("navSettings")}</span>
+		</NavLink>
+	);
+}
+
 function StorageErrorBanner() {
 	const { t } = useTranslation(COMMON_NS);
 	const lastError = usePushlogStore((s) => s.lastError);
@@ -104,6 +122,7 @@ export function AppShell({ children }: Props) {
 				<nav className="flex flex-col gap-1 p-3">
 					<HomeNavLink variant="sidebar" />
 					<StatsNavLink variant="sidebar" />
+					<SettingsNavLink variant="sidebar" />
 				</nav>
 			</aside>
 
@@ -114,9 +133,10 @@ export function AppShell({ children }: Props) {
 			</main>
 
 			<nav className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur lg:hidden">
-				<div className="mx-auto flex max-w-lg justify-around gap-2 p-2">
+				<div className="mx-auto flex max-w-lg justify-around gap-1 p-2 sm:gap-2">
 					<HomeNavLink variant="bottom" />
 					<StatsNavLink variant="bottom" />
+					<SettingsNavLink variant="bottom" />
 				</div>
 			</nav>
 		</div>

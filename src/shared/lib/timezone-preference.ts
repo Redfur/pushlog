@@ -1,4 +1,6 @@
-const STORAGE_KEY = "pushlog.timeZone";
+import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
+
+const STORAGE_KEY = CLIENT_STORAGE_KEYS.timeZone;
 
 /** Значение `<select>` для режима «как в браузере» (не IANA). */
 export const TIMEZONE_AUTO_SELECT_VALUE = "__auto__";

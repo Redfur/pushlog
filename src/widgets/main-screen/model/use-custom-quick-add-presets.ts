@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { CLIENT_STORAGE_CLEARED_EVENT } from "@/shared/lib/clear-client-storage";
 import {
 	readCustomQuickAddPresets,
 	rememberCustomQuickAddPreset,
@@ -9,9 +10,14 @@ export function useCustomQuickAddPresets() {
 	const [customPresets, setCustomPresets] = useState<number[]>(() => readCustomQuickAddPresets());
 
 	useEffect(() => {
-		const onStorage = () => setCustomPresets(readCustomQuickAddPresets());
+		const sync = () => setCustomPresets(readCustomQuickAddPresets());
+		const onStorage = () => sync();
 		window.addEventListener("storage", onStorage);
-		return () => window.removeEventListener("storage", onStorage);
+		window.addEventListener(CLIENT_STORAGE_CLEARED_EVENT, sync);
+		return () => {
+			window.removeEventListener("storage", onStorage);
+			window.removeEventListener(CLIENT_STORAGE_CLEARED_EVENT, sync);
+		};
 	}, []);
 
 	const rememberPreset = useCallback((reps: number) => {

@@ -1,4 +1,4 @@
-import { type DBSchema, type IDBPDatabase, openDB } from "idb";
+import { type DBSchema, deleteDB, type IDBPDatabase, openDB } from "idb";
 import type { StorageAdapter } from "./contract";
 import type { PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
 
@@ -120,4 +120,10 @@ export function getStorageAdapter(): StorageAdapter {
 		singleton = createIndexedDbStorageAdapter();
 	}
 	return singleton;
+}
+
+/** Полное удаление БД на устройстве; следующее обращение к адаптеру создаст пустую БД. */
+export async function wipePushlogIndexedDatabase(): Promise<void> {
+	dbPromise = null;
+	await deleteDB(DB_NAME);
 }

@@ -14,6 +14,11 @@ const StatsPage = lazy(async () => {
 	return { default: m.StatsPage };
 });
 
+const SettingsPage = lazy(async () => {
+	const m = await import("@/pages/settings");
+	return { default: m.SettingsPage };
+});
+
 function StatsRouteFallback() {
 	const { t } = useTranslation(COMMON_NS);
 	return (
@@ -31,6 +36,19 @@ function StatsRouteFallback() {
 	);
 }
 
+function SettingsRouteFallback() {
+	const { t } = useTranslation(COMMON_NS);
+	return (
+		<div className="flex flex-col gap-4 py-4">
+			<span className="sr-only">{t("loadingSettings")}</span>
+			<Skeleton className="h-8 w-48" />
+			<Skeleton className="h-24 w-full rounded-lg" />
+			<Skeleton className="h-24 w-full rounded-lg" />
+			<Skeleton className="h-40 w-full rounded-lg" />
+		</div>
+	);
+}
+
 function AppRoutes() {
 	return (
 		<Routes>
@@ -41,6 +59,14 @@ function AppRoutes() {
 				element={
 					<Suspense fallback={<StatsRouteFallback />}>
 						<StatsPage />
+					</Suspense>
+				}
+			/>
+			<Route
+				path="/settings"
+				element={
+					<Suspense fallback={<SettingsRouteFallback />}>
+						<SettingsPage />
 					</Suspense>
 				}
 			/>

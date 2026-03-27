@@ -1,6 +1,7 @@
 import { QUICK_ADD_PRESETS } from "@/shared/config/pushlog";
+import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
 
-const STORAGE_KEY = "pushlog-quick-add-custom-presets-v1";
+const STORAGE_KEY = CLIENT_STORAGE_KEYS.quickAddPresets;
 
 const DEFAULT_SET = new Set<number>(QUICK_ADD_PRESETS);
 
