@@ -10,10 +10,8 @@ import { STATS_NS } from "../translations";
 
 type Period = 7 | 30;
 
-/** Высота области графика (как `h-56`); число нужно для `ResponsiveContainer`, иначе при `height="100%"` до ResizeObserver размеры бывают -1 и Recharts ругается в консоли. */
 const TREND_CHART_HEIGHT_PX = 224;
 
-/** Короткие подписи оси (число.число) — компактно на узких экранах. */
 function shortDayLabel(dayKey: DayKey, locale: string | undefined): string {
 	const [y, m, d] = dayKey.split("-").map(Number);
 	const date = new Date(y, m - 1, d);
@@ -34,27 +32,35 @@ type Props = {
 	sets: PushlogSet[];
 	todayKey: DayKey;
 	timeZone: string;
+	/** Цвет столбцов повторений (например акцент типа упражнения). */
+	barFill?: string;
+	/** Цвет линии подходов. */
+	lineStroke?: string;
 };
 
-export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
+export function StatsTrendCharts({ sets, todayKey, timeZone, barFill, lineStroke }: Props) {
 	const { t, i18n } = useTranslation(STATS_NS);
 	const [period, setPeriod] = useState<Period>(7);
 	const locale = bcp47FromI18nLang(i18n.language);
 
 	const rows = useMemo(() => {
 		const keys = lastNDaysInclusive(todayKey, period, timeZone);
-		const series = buildDailyActivitySeries(sets, keys);
-		return series.map(
-			(s): ChartRow => ({
-				dayKey: s.dayKey,
-				label: shortDayLabel(s.dayKey, locale),
-				reps: s.reps,
-				setCount: s.setCount,
-			}),
-		);
+		return keys.map((dayKey): ChartRow => {
+			const label = shortDayLabel(dayKey, locale);
+			const series = buildDailyActivitySeries(sets, [dayKey]);
+			const s0 = series[0];
+			return {
+				dayKey,
+				label,
+				reps: s0?.reps ?? 0,
+				setCount: s0?.setCount ?? 0,
+			};
+		});
 	}, [sets, todayKey, timeZone, period, locale]);
 
 	const hasAny = rows.some((r) => r.reps > 0 || r.setCount > 0);
+	const barColor = barFill ?? "var(--color-primary)";
+	const lineColor = lineStroke ?? "var(--color-secondary)";
 
 	return (
 		<Card>
@@ -82,6 +88,7 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 				</div>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-3">
+				<p className="text-muted-foreground text-xs">{t("trendsOverviewHint")}</p>
 				{!hasAny ? (
 					<p className="text-muted-foreground text-sm">{t("trendsEmpty")}</p>
 				) : (
@@ -120,8 +127,7 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 									<Bar
 										yAxisId="reps"
 										dataKey="reps"
-										name="reps"
-										fill="var(--color-primary)"
+										fill={barColor}
 										fillOpacity={0.85}
 										radius={[3, 3, 0, 0]}
 										maxBarSize={36}
@@ -131,9 +137,9 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 										type="monotone"
 										dataKey="setCount"
 										name="setCount"
-										stroke="var(--color-secondary)"
+										stroke={lineColor}
 										strokeWidth={2}
-										dot={{ r: 3, fill: "var(--color-secondary)", strokeWidth: 0 }}
+										dot={{ r: 3, fill: lineColor, strokeWidth: 0 }}
 										activeDot={{ r: 4 }}
 										connectNulls
 									/>
@@ -142,11 +148,15 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 						</div>
 						<div className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
 							<span className="inline-flex items-center gap-1.5">
-								<span className="bg-primary size-2.5 shrink-0 rounded-sm opacity-85" aria-hidden />
+								<span
+									className="size-2.5 shrink-0 rounded-sm opacity-85"
+									style={{ backgroundColor: barColor }}
+									aria-hidden
+								/>
 								{t("tooltipReps")}
 							</span>
 							<span className="inline-flex items-center gap-1.5">
-								<span className="bg-secondary size-2.5 shrink-0 rounded-full" aria-hidden />
+								<span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: lineColor }} aria-hidden />
 								{t("tooltipSets")}
 							</span>
 						</div>

@@ -12,12 +12,15 @@ import { MAIN_SCREEN_NS } from "../translations";
 const MAX_INPUT_REPS = 9999;
 
 type Props = {
-	canLog: boolean;
+	/** Можно отправлять подходы (день не в будущем и есть активные типы упражнений). */
+	canAddSet: boolean;
+	/** День в прошлом/сегодня по календарю; если false — показываем подсказку про будущее. */
+	dayAllowsLogging: boolean;
 	addReps: (reps: number) => void;
 	repeatLast: () => void;
 };
 
-export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
+export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps, repeatLast }: Props) {
 	const { t } = useTranslation(MAIN_SCREEN_NS);
 	const { t: tAdd } = useTranslation(ADD_SET_NS);
 	const { customPresets, rememberPreset, removePreset } = useCustomQuickAddPresets();
@@ -33,7 +36,7 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 
 	function onSubmitCustom(e: FormEvent) {
 		e.preventDefault();
-		if (!canLog) return;
+		if (!canAddSet) return;
 		if (parseAndApply(draft)) {
 			setDraft("");
 		}
@@ -49,7 +52,7 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 						type="button"
 						size="lg"
 						variant="default"
-						disabled={!canLog}
+						disabled={!canAddSet}
 						onClick={() => void addReps(n)}
 					>
 						+{n}
@@ -57,7 +60,7 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 				))}
 				{customPresets.map((n) => (
 					<div key={`custom-${n}`} className="relative inline-flex">
-						<Button type="button" size="lg" variant="default" disabled={!canLog} onClick={() => void addReps(n)}>
+						<Button type="button" size="lg" variant="default" disabled={!canAddSet} onClick={() => void addReps(n)}>
 							+{n}
 						</Button>
 						<button
@@ -81,7 +84,7 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 							buttonVariants({ variant: "outline", size: "lg" }),
 							"min-w-[5.5rem] max-w-[6.5rem] tabular-nums [appearance:textfield] placeholder:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
 						)}
-						disabled={!canLog}
+						disabled={!canAddSet}
 						inputMode="numeric"
 						pattern="[0-9]*"
 						placeholder={tAdd("customPlaceholder")}
@@ -90,11 +93,11 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 						onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 4))}
 					/>
 				</form>
-				<Button type="button" size="lg" variant="secondary" disabled={!canLog} onClick={() => repeatLast()}>
+				<Button type="button" size="lg" variant="secondary" disabled={!canAddSet} onClick={() => repeatLast()}>
 					{tAdd("repeatLast")}
 				</Button>
 			</div>
-			{!canLog ? <p className="text-muted-foreground text-xs">{t("futureDayReadOnly")}</p> : null}
+			{!dayAllowsLogging ? <p className="text-muted-foreground text-xs">{t("futureDayReadOnly")}</p> : null}
 		</div>
 	);
 }

@@ -7,6 +7,10 @@ export const mainScreenTranslations = {
 		titleDay: "{{date}}",
 		totalToday: "Всего за день: {{count}}",
 		progressTowardGoal: "{{current}} / {{target}}",
+		progressTypeLine: "{{name}} — {{reps}} повт.",
+		progressTypeGoal: "{{name}}: {{current}} / {{target}}",
+		totalEntriesLine: "Записей подходов за день: {{count}}",
+		emptyDayProgress: "За этот день пока нет повторений.",
 		empty: "Пока нет подходов — нажмите кнопку ниже.",
 		quickAdd: "Быстро добавить",
 		quickAddInputAria: "Своё число повторений, Enter — добавить",
@@ -15,5 +19,7 @@ export const mainScreenTranslations = {
 		dayNavNext: "Следующий день",
 		dayNavPickDate: "Выбрать дату",
 		futureDayReadOnly: "Будущие дни недоступны для записи.",
+		noActiveExercisesHint: "Нет активных упражнений в каталоге — добавьте тип, чтобы записывать подходы.",
+		noActiveExercisesLink: "Мои упражнения",
 	},
 } as const;

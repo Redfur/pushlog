@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
 import { useAddSet } from "@/features/add-set";
+import { ExerciseTypeSelect } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { canLogSetsForDay, type DayKey, offsetDayKey } from "@/shared/lib/day-key";
 import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
@@ -21,6 +23,7 @@ export function MainScreen({ dayKey }: Props) {
 	const locale = bcp47FromI18nLang(i18n.language);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
+	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 	const timeZone = usePushlogStore((s) => s.timeZone);
 	const todayKey = useTodayDayKey(timeZone);
 	const yesterdayKey = offsetDayKey(todayKey, -1, timeZone);
@@ -31,6 +34,13 @@ export function MainScreen({ dayKey }: Props) {
 	const { addReps, repeatLast } = useAddSet(dayKey);
 
 	const daySets = useMemo(() => filterSetsByDayKey(sets, dayKey), [sets, dayKey]);
+
+	const hasActiveExerciseTypes = useMemo(
+		() => Object.values(exerciseTypesById).some((t) => !t.archivedAt),
+		[exerciseTypesById],
+	);
+
+	const allowLog = canLog && hasActiveExerciseTypes;
 
 	if (!hydrated) {
 		return (
@@ -53,7 +63,16 @@ export function MainScreen({ dayKey }: Props) {
 			</h1>
 			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
 			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
-			<QuickAddPanel canLog={canLog} addReps={addReps} repeatLast={repeatLast} />
+			<ExerciseTypeSelect />
+			{canLog && !hasActiveExerciseTypes ? (
+				<p className="text-muted-foreground text-sm">
+					{t("noActiveExercisesHint")}{" "}
+					<Link to="/settings/exercises" className="text-primary font-medium underline-offset-4 hover:underline">
+						{t("noActiveExercisesLink")}
+					</Link>
+				</p>
+			) : null}
+			<QuickAddPanel canAddSet={allowLog} dayAllowsLogging={canLog} addReps={addReps} repeatLast={repeatLast} />
 			<DaySetsList sets={daySets} />
 		</div>
 	);

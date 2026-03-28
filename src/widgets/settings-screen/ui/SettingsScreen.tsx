@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -130,6 +131,9 @@ export function SettingsScreen() {
 					<CardTitle className="text-sm font-medium">{t("regionSection")}</CardTitle>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-4">
+					<Button type="button" variant="outline" className="w-full sm:w-auto" asChild>
+						<Link to="/settings/exercises">{t("myExercises")}</Link>
+					</Button>
 					<TimezoneSelect />
 					<GoalSettingsCard />
 				</CardContent>

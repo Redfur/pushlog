@@ -5,9 +5,9 @@
 | Слой | Папка | Роль в Push log |
 |------|--------|-----------------|
 | App | `src/app/` | Провайдеры (i18n, theme), **инициализация store**, подключение persistence |
-| Pages | `src/pages/` | Маршруты: главная, статистика (композиция виджетов) |
+| Pages | `src/pages/` | Маршруты: день, статистика (сводка и `/stats/exercise/:id`), настройки, `/settings/exercises` |
 | Widgets | `src/widgets/` | Крупные блоки экранов: `main-screen`, `stats` |
-| Features | `src/features/` | Пользовательские действия: `add-set`, `remove-set` (тонкие обёртки над store + UX) |
+| Features | `src/features/` | `add-set`, `remove-set`, `select-exercise`, `set-daily-goal`, `manage-exercises`, … |
 | Entities | `src/entities/` | Домен: `pushup` (типы, представление Set/Goal, мелкие UI-кирпичи) |
 | Shared | `src/shared/` | `lib/` (дата, timezone, id), `config/` (пресеты, exercise id), **storage abstraction** |
 | UI-kit | `src/components/ui/` | shadcn — без бизнес-логики |
@@ -35,8 +35,10 @@
 
 **Структура состояния (логическая)**
 
-- `sets: Set[]` — кэш в памяти после гидрации из IndexedDB, либо нормализованное хранение по `id`
-- `goal: Goal | null`
+- `sets: Set[]` — кэш в памяти после гидрации из IndexedDB
+- `exerciseTypesById: Record<id, PersistedExerciseType>` — каталог типов (UUID, имя, иконка/цвет пресетов, `archivedAt` для мягкого архива)
+- `goalsByExercise: Record<exerciseTypeId, Goal>`
+- `preferredExerciseTypeId` — только среди **активных** типов; в `localStorage`
 - `ui: { isHydrated: boolean; lastError: string | null }` — опционально
 - Производные **не обязаны** жить в state: `getTodaySets`, `computeStats`, `computeStreak` — функции селекторов/утилит в `entities/pushup/model` или рядом со store
 
@@ -50,7 +52,8 @@
 | `getTodaySets()` | Фильтр по текущему `dayKey` (timezone из shared) |
 | `computeStats()` | Вернуть `Stats` по текущему массиву sets (+ goal при необходимости) |
 | `computeStreak()` | По множеству `dayKey`; для MVP можно вернуть число без отображения |
-| `setGoal` / `clearGoal` | Опционально MVP |
+| `setDailyGoal` / `clearDailyGoal` | Цель по `exerciseTypeId` |
+| `addExerciseType` / `updateExerciseType` / `archiveExerciseType` / `unarchiveExerciseType` | Каталог типов в IndexedDB |
 
 Асинхронность: `hydrate` async; `addSet`/`removeSet` — async к storage, но UI обновляется оптимистично или с микролагом < целевого UX.
 
@@ -64,15 +67,16 @@ interface StorageAdapter {
   getAllSets(): Promise<Set[]>
   putSet(set: Set): Promise<void>
   deleteSet(id: string): Promise<void>
-  getGoal(): Promise<Goal | null>
-  putGoal(goal: Goal): Promise<void>
-  // Версия схемы для миграций
-  getMeta(): Promise<{ schemaVersion: number }>
-  setMeta(m: { schemaVersion: number }): Promise<void>
+  getGoals(): Promise<Record<string, Goal>>
+  putGoalForExercise(goal: Goal): Promise<void>
+  clearGoalForExercise(exerciseTypeId: string): Promise<void>
+  getAllExerciseTypes(): Promise<PersistedExerciseType[]>
+  getExerciseType(id: string): Promise<PersistedExerciseType | undefined>
+  putExerciseType(row: PersistedExerciseType): Promise<void>
 }
 ```
 
-**Реализация MVP:** IndexedDB через пакет `idb` (уже в зависимостях), object stores: `sets`, `meta`, `goals`.
+**Реализация:** IndexedDB (`idb`): `sets`, `exerciseTypes`, `meta` (в т.ч. `goalsByExerciseTypeId`); миграция v2 с легаси `exercise.pushups` / `exercise.pullups` → UUID.
 
 **Будущее:** `ApiStorageAdapter` с тем же интерфейсом; выбор адаптера в `app` при старте (env).
 
@@ -98,7 +102,7 @@ app mount → hydrate() → StorageAdapter.get* → store → UI
 - `@/components/ui/*` — кнопки, layout, skeleton
 - `@/shared/lib/id.ts` — `generateId()` для новых `Set`/`Goal`
 - `@/shared/lib/utils.ts`, theme — как есть
-- `@/shared/config/*` — пресеты quick-add, `DEFAULT_EXERCISE_TYPE_ID`
+- `@/shared/config/*` — пресеты quick-add, пресеты иконок/цветов для типов (`exercise-type-presets`); список упражнений — в IndexedDB, не в статическом `EXERCISE_TYPES`
 - `@/shared/i18n` — базовые ключи; новые строки — в слайсах через `injectTranslation`
 
 ## Тестируемость

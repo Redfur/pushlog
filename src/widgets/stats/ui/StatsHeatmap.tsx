@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { buildHeatmapGrid, type PushlogSet } from "@/entities/pushup";
+import { buildHeatmapGrid, orderedRepsBreakdownForDay, type PushlogSet, usePushlogStore } from "@/entities/pushup";
+import { SELECT_EXERCISE_NS } from "@/features/select-exercise";
 import type { DayKey } from "@/shared/lib/day-key";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { cn } from "@/shared/lib/utils";
@@ -10,11 +11,8 @@ import { STATS_NS } from "../translations";
 
 const WEEKS = 26;
 
-/** Фиксированный размер ячейки (px): одинаково на мобиле и десктопе, без растягивания сетки. */
 const HEATMAP_CELL_PX = 14;
-/** Отступ между ячейками (px). */
 const HEATMAP_GAP_PX = 5;
-/** Ширина колонки подписей дней недели (px). */
 const HEATMAP_LABEL_COL_PX = 36;
 
 const WEEKDAY_ROW_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -38,13 +36,25 @@ type Props = {
 	sets: PushlogSet[];
 	todayKey: DayKey;
 	timeZone: string;
+	/** Если задан — теплокарта и подсказки только по этому типу упражнения. */
+	exerciseTypeIdFilter?: string;
 };
 
-export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
+export function StatsHeatmap({ sets, todayKey, timeZone, exerciseTypeIdFilter }: Props) {
 	const { t, i18n } = useTranslation(STATS_NS);
+	const { t: tEx } = useTranslation(SELECT_EXERCISE_NS);
 	const locale = bcp47FromI18nLang(i18n.language);
+	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 
-	const cells = useMemo(() => buildHeatmapGrid(sets, todayKey, timeZone, WEEKS), [sets, todayKey, timeZone]);
+	const effectiveSets = useMemo(() => {
+		if (!exerciseTypeIdFilter) return sets;
+		return sets.filter((s) => s.exerciseTypeId === exerciseTypeIdFilter);
+	}, [sets, exerciseTypeIdFilter]);
+
+	const cells = useMemo(
+		() => buildHeatmapGrid(effectiveSets, todayKey, timeZone, WEEKS),
+		[effectiveSets, todayKey, timeZone],
+	);
 
 	const maxReps = useMemo(() => {
 		let m = 0;
@@ -60,7 +70,6 @@ export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 		gap: HEATMAP_GAP_PX,
 	} as const;
 
-	/** Высота сетки: 7 рядов + промежутки (должна совпадать с колонкой подписей, иначе появляется вертикальный скролл). */
 	const gridHeightPx = 7 * HEATMAP_CELL_PX + 6 * HEATMAP_GAP_PX;
 
 	return (
@@ -68,6 +77,9 @@ export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 			<CardHeader className="pb-2">
 				<CardTitle className="text-sm font-medium">{t("heatmapTitle")}</CardTitle>
 				<p className="text-muted-foreground text-xs">{t("heatmapWeeks", { count: WEEKS })}</p>
+				<p className="text-muted-foreground text-xs">
+					{exerciseTypeIdFilter ? t("heatmapSingleExerciseHint") : t("heatmapIntensityHint")}
+				</p>
 			</CardHeader>
 			<CardContent className="space-y-3">
 				<TooltipProvider delayDuration={200}>
@@ -93,13 +105,8 @@ export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 									Array.from({ length: WEEKS }, (_, w) => {
 										const cell = cells[w * 7 + wd];
 										const isFuture = cell.dayKey === null;
-										const label =
-											isFuture || !cell.dayKey
-												? t("heatmapFuture")
-												: t("heatmapDayTooltip", {
-														date: formatDayKeyFull(cell.dayKey, locale),
-														reps: cell.reps,
-													});
+										const breakdown =
+											!isFuture && cell.dayKey ? orderedRepsBreakdownForDay(effectiveSets, cell.dayKey) : [];
 										const rowKey = WEEKDAY_ROW_KEYS[wd] ?? "d";
 										const cellKey = cell.dayKey ?? `empty-${cell.weekIndex}-${rowKey}`;
 
@@ -118,11 +125,33 @@ export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 															minWidth: HEATMAP_CELL_PX,
 															minHeight: HEATMAP_CELL_PX,
 														}}
-														aria-label={label}
+														aria-label={
+															isFuture || !cell.dayKey
+																? t("heatmapFuture")
+																: t("heatmapDayTooltip", {
+																		date: formatDayKeyFull(cell.dayKey, locale),
+																		reps: cell.reps,
+																	})
+														}
 													/>
 												</TooltipTrigger>
-												<TooltipContent side="top">
-													<p>{label}</p>
+												<TooltipContent side="top" className="max-w-xs">
+													{isFuture || !cell.dayKey ? (
+														<p>{t("heatmapFuture")}</p>
+													) : (
+														<div className="space-y-1">
+															<p className="font-medium">{formatDayKeyFull(cell.dayKey, locale)}</p>
+															<p>{t("heatmapTooltipTotal", { reps: cell.reps })}</p>
+															{breakdown.length > 1
+																? breakdown.map((b) => {
+																		const name = exerciseTypesById[b.exerciseTypeId]?.name ?? tEx("unknownType");
+																		return (
+																			<p key={b.exerciseTypeId}>{t("heatmapBreakdownLine", { name, reps: b.reps })}</p>
+																		);
+																	})
+																: null}
+														</div>
+													)}
 												</TooltipContent>
 											</Tooltip>
 										);

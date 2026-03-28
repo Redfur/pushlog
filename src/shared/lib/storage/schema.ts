@@ -22,3 +22,17 @@ export type PersistedGoal = {
 export type PersistedMeta = {
 	schemaVersion: number;
 };
+
+/** Каталог упражнений (UUID); имя и оформление задаёт пользователь. */
+export type PersistedExerciseType = {
+	id: string;
+	name: string;
+	iconKey: string;
+	colorKind: "preset" | "custom";
+	/** preset: `chart-1`…`chart-5`; custom: `#rrggbb` */
+	colorValue: string;
+	archivedAt: string | null;
+	createdAt: string;
+	updatedAt: string;
+	version: number;
+};

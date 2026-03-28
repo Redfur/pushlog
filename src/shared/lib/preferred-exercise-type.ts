@@ -1,0 +1,29 @@
+import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
+
+/** Сырое значение из localStorage (UUID или устаревший id до миграции). */
+export function readStoredPreferredExerciseTypeRaw(): string | null {
+	if (typeof localStorage === "undefined") return null;
+	try {
+		return localStorage.getItem(CLIENT_STORAGE_KEYS.preferredExerciseType);
+	} catch {
+		return null;
+	}
+}
+
+export function writePreferredExerciseTypeId(id: string): void {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.setItem(CLIENT_STORAGE_KEYS.preferredExerciseType, id);
+	} catch {
+		/* ignore */
+	}
+}
+
+export function clearStoredPreferredExerciseType(): void {
+	if (typeof localStorage === "undefined") return;
+	try {
+		localStorage.removeItem(CLIENT_STORAGE_KEYS.preferredExerciseType);
+	} catch {
+		/* ignore */
+	}
+}

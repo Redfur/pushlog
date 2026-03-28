@@ -19,6 +19,16 @@ const SettingsPage = lazy(async () => {
 	return { default: m.SettingsPage };
 });
 
+const SettingsExercisesPage = lazy(async () => {
+	const m = await import("@/pages/settings-exercises");
+	return { default: m.SettingsExercisesPage };
+});
+
+const StatsExercisePage = lazy(async () => {
+	const m = await import("@/pages/stats-exercise");
+	return { default: m.StatsExercisePage };
+});
+
 function StatsRouteFallback() {
 	const { t } = useTranslation(COMMON_NS);
 	return (
@@ -55,10 +65,26 @@ function AppRoutes() {
 			<Route path="/" element={<HomePage />} />
 			<Route path="/day/:dayKey" element={<DayPage />} />
 			<Route
+				path="/stats/exercise/:exerciseId"
+				element={
+					<Suspense fallback={<StatsRouteFallback />}>
+						<StatsExercisePage />
+					</Suspense>
+				}
+			/>
+			<Route
 				path="/stats"
 				element={
 					<Suspense fallback={<StatsRouteFallback />}>
 						<StatsPage />
+					</Suspense>
+				}
+			/>
+			<Route
+				path="/settings/exercises"
+				element={
+					<Suspense fallback={<SettingsRouteFallback />}>
+						<SettingsExercisesPage />
 					</Suspense>
 				}
 			/>

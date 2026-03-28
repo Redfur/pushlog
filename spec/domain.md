@@ -19,7 +19,7 @@
 | Поле | Тип | Описание |
 |------|-----|----------|
 | `id` | string | UUID |
-| `exerciseTypeId` | string | Ссылка на тип (MVP — константа `pushups`) |
+| `exerciseTypeId` | string | UUID типа из каталога `exerciseTypes` (IndexedDB) |
 | `reps` | number | Целое > 0 |
 | `createdAt` | string | ISO UTC |
 | `dayKey` | string | День пользователя для индексации |
@@ -58,6 +58,8 @@
 | `effectiveFrom` | string | ISO date или dayKey начала |
 | `updatedAt` | string | ISO |
 
+Персист в IndexedDB: объект **нескольких** целей в `meta.goalsByExerciseTypeId` (ключ — `exerciseTypeId`); ранее — одно поле `goal`, мигрируется при чтении.
+
 Расширение: `period: 'day' \| 'week'` без ломки — новые поля с дефолтами.
 
 ## Примеры данных
@@ -70,15 +72,16 @@
 }
 ```
 
-### ExerciseType (константа MVP)
+### PersistedExerciseType (IndexedDB `exerciseTypes`)
 
-```json
-{
-  "id": "exercise.pushups",
-  "nameKey": "exercise.pushups",
-  "defaultUnit": "reps"
-}
-```
+| Поле | Описание |
+|------|----------|
+| `id` | UUID |
+| `name` | Пользовательское имя |
+| `iconKey` | Ключ пресета иконки (Lucide) |
+| `colorKind` | `preset` \| `custom` |
+| `colorValue` | `chart-1`… или `#RRGGBB` |
+| `archivedAt` | ISO или `null` (архив — не в селекторах, данные и статистика сохраняются) |
 
 ### Набор Set (несколько дней)
 

@@ -13,6 +13,7 @@ export function useAddSet(dayKey: DayKey) {
 	const addSet = usePushlogStore((s) => s.addSet);
 	const removeSet = usePushlogStore((s) => s.removeSet);
 	const sets = usePushlogStore((s) => s.sets);
+	const preferredExerciseTypeId = usePushlogStore((s) => s.preferredExerciseTypeId);
 	const guard = useRef(false);
 
 	const runGuarded = useCallback(async (fn: () => Promise<void>) => {
@@ -46,7 +47,7 @@ export function useAddSet(dayKey: DayKey) {
 	);
 
 	const repeatLast = useCallback(() => {
-		const reps = getRepeatLastReps(sets, dayKey);
+		const reps = getRepeatLastReps(sets, dayKey, preferredExerciseTypeId);
 		if (reps === null) return;
 		void runGuarded(async () => {
 			const id = await addSet(reps, { dayKey });
@@ -61,7 +62,7 @@ export function useAddSet(dayKey: DayKey) {
 				});
 			}
 		});
-	}, [addSet, dayKey, removeSet, runGuarded, sets, t]);
+	}, [addSet, dayKey, preferredExerciseTypeId, removeSet, runGuarded, sets, t]);
 
 	return { addReps, repeatLast };
 }

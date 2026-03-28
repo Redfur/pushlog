@@ -1,8 +1,15 @@
 import { create } from "zustand";
-import { DEFAULT_EXERCISE_TYPE_ID } from "@/shared/config/pushlog";
+import {
+	EXERCISE_TYPE_ROW_VERSION,
+	isValidCustomExerciseColor,
+	isValidExerciseColorPreset,
+	isValidExerciseIconKey,
+} from "@/shared/config/exercise-type-presets";
 import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
+import { readStoredPreferredExerciseTypeRaw, writePreferredExerciseTypeId } from "@/shared/lib/preferred-exercise-type";
 import { getStorageAdapter } from "@/shared/lib/storage";
+import type { PersistedExerciseType } from "@/shared/lib/storage/schema";
 import {
 	clearStoredTimeZone,
 	isValidTimeZoneId,
@@ -15,47 +22,117 @@ import type { Goal, PushlogSet } from "./types";
 
 const SET_VERSION = 1;
 
+function exerciseTypesToRecord(types: PersistedExerciseType[]): Record<string, PersistedExerciseType> {
+	return Object.fromEntries(types.map((t) => [t.id, t]));
+}
+
+function firstActiveExerciseTypeId(byId: Record<string, PersistedExerciseType>): string {
+	const active = Object.values(byId)
+		.filter((t) => !t.archivedAt)
+		.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+	return active[0]?.id ?? "";
+}
+
+function resolvePreferredId(raw: string | null, byId: Record<string, PersistedExerciseType>): string {
+	if (raw && byId[raw] && !byId[raw].archivedAt) return raw;
+	return firstActiveExerciseTypeId(byId);
+}
+
+export type NewExerciseTypeInput = {
+	name: string;
+	iconKey: string;
+	colorKind: "preset" | "custom";
+	colorValue: string;
+};
+
+export type UpdateExerciseTypeInput = Partial<
+	Pick<PersistedExerciseType, "name" | "iconKey" | "colorKind" | "colorValue">
+>;
+
 type PushlogState = {
 	sets: PushlogSet[];
-	goal: Goal | null;
+	goalsByExercise: Record<string, Goal>;
+	exerciseTypesById: Record<string, PersistedExerciseType>;
+	preferredExerciseTypeId: string;
 	hydrated: boolean;
 	lastError: string | null;
 	timeZone: string;
 	hydrate: () => Promise<void>;
-	/** `dayKey` — календарный день записи; по умолчанию «сегодня». Нельзя логировать за будущие дни. */
-	addSet: (reps: number, options?: { dayKey?: string }) => Promise<string | undefined>;
+	addSet: (reps: number, options?: { dayKey?: string; exerciseTypeId?: string }) => Promise<string | undefined>;
 	removeSet: (id: string) => Promise<boolean>;
 	restoreSet: (row: PushlogSet) => Promise<boolean>;
-	setDailyGoal: (targetRepsPerDay: number) => Promise<void>;
-	clearDailyGoal: () => Promise<void>;
+	setDailyGoal: (targetRepsPerDay: number, exerciseTypeId?: string) => Promise<void>;
+	clearDailyGoal: (exerciseTypeId: string) => Promise<void>;
+	setPreferredExerciseTypeId: (exerciseTypeId: string) => void;
+	addExerciseType: (input: NewExerciseTypeInput) => Promise<string | undefined>;
+	updateExerciseType: (id: string, patch: UpdateExerciseTypeInput) => Promise<boolean>;
+	archiveExerciseType: (id: string) => Promise<boolean>;
+	unarchiveExerciseType: (id: string) => Promise<boolean>;
 	setTimeZone: (timeZone: string) => void;
 	clearError: () => void;
 };
 
+function isActiveExerciseTypeId(get: () => PushlogState, id: string): boolean {
+	const t = get().exerciseTypesById[id];
+	return Boolean(t && !t.archivedAt);
+}
+
+function isRegisteredExerciseTypeId(get: () => PushlogState, id: string): boolean {
+	return id in get().exerciseTypesById;
+}
+
 export const usePushlogStore = create<PushlogState>((set, get) => ({
 	sets: [],
-	goal: null,
+	goalsByExercise: {},
+	exerciseTypesById: {},
+	preferredExerciseTypeId: "",
 	hydrated: false,
 	lastError: null,
 	timeZone: getDefaultTimeZone(),
 
 	clearError: () => set({ lastError: null }),
 
+	setPreferredExerciseTypeId: (exerciseTypeId: string) => {
+		if (!isActiveExerciseTypeId(get, exerciseTypeId)) return;
+		writePreferredExerciseTypeId(exerciseTypeId);
+		set({ preferredExerciseTypeId: exerciseTypeId });
+	},
+
 	hydrate: async () => {
 		const storage = getStorageAdapter();
 		const tz = readStoredTimeZone() ?? getDefaultTimeZone();
 		try {
-			const [loadedSets, goal] = await Promise.all([storage.getAllSets(), storage.getGoal()]);
+			const [loadedSets, goalsRecord, typesList] = await Promise.all([
+				storage.getAllSets(),
+				storage.getGoals(),
+				storage.getAllExerciseTypes(),
+			]);
+			const exerciseTypesById = exerciseTypesToRecord(typesList);
+			const rawPreferred = readStoredPreferredExerciseTypeRaw();
+			let preferred = resolvePreferredId(rawPreferred, exerciseTypesById);
+			if (!preferred && typesList.length > 0) {
+				preferred = typesList[0].id;
+			}
+			if (preferred) {
+				writePreferredExerciseTypeId(preferred);
+			}
 			set({
 				sets: loadedSets,
-				goal,
+				goalsByExercise: goalsRecord,
+				exerciseTypesById,
+				preferredExerciseTypeId: preferred,
 				hydrated: true,
 				lastError: null,
 				timeZone: tz,
 			});
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
-			set({ lastError: message, hydrated: true, timeZone: tz });
+			set({
+				lastError: message,
+				hydrated: true,
+				timeZone: tz,
+				preferredExerciseTypeId: "",
+			});
 		}
 	},
 
@@ -70,16 +147,142 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set({ timeZone });
 	},
 
-	addSet: async (reps: number, options?: { dayKey?: string }) => {
+	addExerciseType: async (input: NewExerciseTypeInput) => {
+		const name = input.name.trim();
+		if (!name) return undefined;
+		const iconKey = isValidExerciseIconKey(input.iconKey) ? input.iconKey : "activity";
+		let colorKind = input.colorKind;
+		let colorValue = input.colorValue;
+		if (colorKind === "custom") {
+			if (!isValidCustomExerciseColor(colorValue)) {
+				colorKind = "preset";
+				colorValue = "chart-1";
+			}
+		} else if (!isValidExerciseColorPreset(colorValue)) {
+			colorValue = "chart-1";
+		}
+		const now = new Date().toISOString();
+		const row: PersistedExerciseType = {
+			id: crypto.randomUUID(),
+			name,
+			iconKey,
+			colorKind,
+			colorValue,
+			archivedAt: null,
+			createdAt: now,
+			updatedAt: now,
+			version: EXERCISE_TYPE_ROW_VERSION,
+		};
+		set((s) => ({
+			exerciseTypesById: { ...s.exerciseTypesById, [row.id]: row },
+			lastError: null,
+		}));
+		try {
+			await getStorageAdapter().putExerciseType(row);
+			return row.id;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set((s) => {
+				const next = { ...s.exerciseTypesById };
+				delete next[row.id];
+				return { exerciseTypesById: next, lastError: message };
+			});
+			return undefined;
+		}
+	},
+
+	updateExerciseType: async (id: string, patch: UpdateExerciseTypeInput) => {
+		const prev = get().exerciseTypesById[id];
+		if (!prev) return false;
+		const now = new Date().toISOString();
+		let iconKey = patch.iconKey !== undefined ? patch.iconKey : prev.iconKey;
+		if (!isValidExerciseIconKey(iconKey)) iconKey = prev.iconKey;
+		let colorKind = patch.colorKind !== undefined ? patch.colorKind : prev.colorKind;
+		let colorValue = patch.colorValue !== undefined ? patch.colorValue : prev.colorValue;
+		if (colorKind === "custom") {
+			if (!isValidCustomExerciseColor(colorValue)) {
+				colorKind = prev.colorKind;
+				colorValue = prev.colorValue;
+			}
+		} else if (!isValidExerciseColorPreset(colorValue)) {
+			colorValue = prev.colorValue;
+		}
+		const row: PersistedExerciseType = {
+			...prev,
+			name: patch.name !== undefined ? patch.name.trim() || prev.name : prev.name,
+			iconKey,
+			colorKind,
+			colorValue,
+			updatedAt: now,
+		};
+		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
+		try {
+			await getStorageAdapter().putExerciseType(row);
+			return true;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ exerciseTypesById: { ...get().exerciseTypesById, [id]: prev }, lastError: message });
+			return false;
+		}
+	},
+
+	archiveExerciseType: async (id: string) => {
+		const prev = get().exerciseTypesById[id];
+		if (!prev || prev.archivedAt) return false;
+		const now = new Date().toISOString();
+		const row: PersistedExerciseType = { ...prev, archivedAt: now, updatedAt: now };
+		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
+		try {
+			await getStorageAdapter().putExerciseType(row);
+			if (get().preferredExerciseTypeId === id) {
+				const nextPref = firstActiveExerciseTypeId(get().exerciseTypesById);
+				if (nextPref) {
+					writePreferredExerciseTypeId(nextPref);
+					set({ preferredExerciseTypeId: nextPref });
+				} else {
+					set({ preferredExerciseTypeId: "" });
+				}
+			}
+			return true;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ exerciseTypesById: { ...get().exerciseTypesById, [id]: prev }, lastError: message });
+			return false;
+		}
+	},
+
+	unarchiveExerciseType: async (id: string) => {
+		const prev = get().exerciseTypesById[id];
+		if (!prev || !prev.archivedAt) return false;
+		const row: PersistedExerciseType = { ...prev, archivedAt: null, updatedAt: new Date().toISOString() };
+		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
+		try {
+			await getStorageAdapter().putExerciseType(row);
+			if (!get().preferredExerciseTypeId) {
+				writePreferredExerciseTypeId(id);
+				set({ preferredExerciseTypeId: id });
+			}
+			return true;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			set({ exerciseTypesById: { ...get().exerciseTypesById, [id]: prev }, lastError: message });
+			return false;
+		}
+	},
+
+	addSet: async (reps: number, options?: { dayKey?: string; exerciseTypeId?: string }) => {
 		if (reps <= 0 || !Number.isFinite(reps)) return undefined;
 
-		const { timeZone } = get();
+		const { timeZone, preferredExerciseTypeId } = get();
+		const exerciseTypeId = options?.exerciseTypeId ?? preferredExerciseTypeId;
+		if (!isActiveExerciseTypeId(get, exerciseTypeId)) return undefined;
+
 		const targetDayKey = options?.dayKey ?? nowDayKey(timeZone);
 		if (!canLogSetsForDay(targetDayKey, timeZone)) return undefined;
 
 		const row: PushlogSet = {
 			id: generateId(),
-			exerciseTypeId: DEFAULT_EXERCISE_TYPE_ID,
+			exerciseTypeId,
 			reps: Math.floor(reps),
 			createdAt: new Date().toISOString(),
 			dayKey: targetDayKey,
@@ -119,6 +322,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 	},
 
 	restoreSet: async (row: PushlogSet) => {
+		if (!isRegisteredExerciseTypeId(get, row.exerciseTypeId)) return false;
 		const prev = get().sets;
 		const next = sortSetsByCreatedAtAsc([...prev, row]);
 		set({ sets: next, lastError: null });
@@ -132,35 +336,49 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		}
 	},
 
-	setDailyGoal: async (targetRepsPerDay: number) => {
+	setDailyGoal: async (targetRepsPerDay: number, exerciseTypeIdArg?: string) => {
 		if (targetRepsPerDay <= 0 || !Number.isFinite(targetRepsPerDay)) return;
+		const exerciseTypeId = exerciseTypeIdArg ?? get().preferredExerciseTypeId;
+		if (!isActiveExerciseTypeId(get, exerciseTypeId)) return;
+
 		const n = Math.floor(targetRepsPerDay);
 		const now = new Date().toISOString();
 		const goal: Goal = {
 			id: generateId(),
-			exerciseTypeId: DEFAULT_EXERCISE_TYPE_ID,
+			exerciseTypeId,
 			targetRepsPerDay: n,
 			effectiveFrom: now,
 			updatedAt: now,
 		};
-		const prevGoal = get().goal;
-		set({ goal, lastError: null });
+		const prevGoals = get().goalsByExercise;
+		const prevOne = prevGoals[exerciseTypeId];
+		const nextGoals = { ...prevGoals, [exerciseTypeId]: goal };
+		set({ goalsByExercise: nextGoals, lastError: null });
 		try {
-			await getStorageAdapter().putGoal(goal);
+			await getStorageAdapter().putGoalForExercise(goal);
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
-			set({ goal: prevGoal, lastError: message });
+			const rolled: Record<string, Goal> = { ...prevGoals };
+			if (prevOne) {
+				rolled[exerciseTypeId] = prevOne;
+			} else {
+				delete rolled[exerciseTypeId];
+			}
+			set({ goalsByExercise: rolled, lastError: message });
 		}
 	},
 
-	clearDailyGoal: async () => {
-		const prev = get().goal;
-		set({ goal: null, lastError: null });
+	clearDailyGoal: async (exerciseTypeId: string) => {
+		const prevGoals = get().goalsByExercise;
+		if (!(exerciseTypeId in prevGoals)) return;
+		const nextGoals = { ...prevGoals };
+		delete nextGoals[exerciseTypeId];
+		set({ goalsByExercise: nextGoals, lastError: null });
 		try {
-			await getStorageAdapter().clearGoal();
+			await getStorageAdapter().clearGoalForExercise(exerciseTypeId);
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
-			set({ goal: prev, lastError: message });
+			set({ goalsByExercise: prevGoals, lastError: message });
 		}
 	},
 }));

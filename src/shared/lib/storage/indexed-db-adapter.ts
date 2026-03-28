@@ -1,16 +1,12 @@
 import { type DBSchema, deleteDB, type IDBPDatabase, openDB } from "idb";
 import type { StorageAdapter } from "./contract";
-import type { PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
+import { type MetaRowGoals, metaRowWithoutLegacyGoal, normalizeGoalsFromMeta } from "./meta-goals";
+import { migrateExerciseCatalogV2 } from "./migrate-exercise-catalog-v2";
+import type { PersistedExerciseType, PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
 
 const DB_NAME = "pushlog";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const CURRENT_SCHEMA_VERSION = 1;
-
-type MetaRow = {
-	key: string;
-	schemaVersion: number;
-	goal?: PersistedGoal;
-};
 
 interface PushlogDBSchema extends DBSchema {
 	sets: {
@@ -20,7 +16,11 @@ interface PushlogDBSchema extends DBSchema {
 	};
 	meta: {
 		key: string;
-		value: MetaRow;
+		value: MetaRowGoals;
+	};
+	exerciseTypes: {
+		key: string;
+		value: PersistedExerciseType;
 	};
 }
 
@@ -29,13 +29,19 @@ let dbPromise: Promise<IDBPDatabase<PushlogDBSchema>> | null = null;
 function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 	if (!dbPromise) {
 		dbPromise = openDB<PushlogDBSchema>(DB_NAME, DB_VERSION, {
-			upgrade(database) {
+			async upgrade(database, oldVersion, _newVersion, transaction) {
 				if (!database.objectStoreNames.contains("sets")) {
 					const setStore = database.createObjectStore("sets", { keyPath: "id" });
 					setStore.createIndex("by-dayKey", "dayKey");
 				}
 				if (!database.objectStoreNames.contains("meta")) {
 					database.createObjectStore("meta", { keyPath: "key" });
+				}
+				if (!database.objectStoreNames.contains("exerciseTypes")) {
+					database.createObjectStore("exerciseTypes", { keyPath: "id" });
+				}
+				if (oldVersion < 2 && transaction) {
+					await migrateExerciseCatalogV2(transaction);
 				}
 			},
 		});
@@ -45,7 +51,7 @@ function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 
 const META_KEY = "app";
 
-async function readMetaRow(db: IDBPDatabase<PushlogDBSchema>): Promise<MetaRow> {
+async function readMetaRow(db: IDBPDatabase<PushlogDBSchema>): Promise<MetaRowGoals> {
 	const row = await db.get("meta", META_KEY);
 	if (!row) {
 		return { key: META_KEY, schemaVersion: CURRENT_SCHEMA_VERSION };
@@ -70,29 +76,46 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 			await db.delete("sets", id);
 		},
 
-		async getGoal() {
+		async getGoals() {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			return meta.goal ?? null;
+			const goals = normalizeGoalsFromMeta(meta);
+			const hadLegacyOnly = Boolean(meta.goal) && !meta.goalsByExerciseTypeId;
+			if (hadLegacyOnly && Object.keys(goals).length > 0) {
+				await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
+			}
+			return goals;
 		},
 
-		async putGoal(goal) {
+		async putGoalForExercise(goal: PersistedGoal) {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			await db.put("meta", {
-				key: META_KEY,
-				schemaVersion: meta.schemaVersion,
-				goal,
-			});
+			const goals = normalizeGoalsFromMeta(meta);
+			goals[goal.exerciseTypeId] = goal;
+			await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
 		},
 
-		async clearGoal() {
+		async clearGoalForExercise(exerciseTypeId: string) {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			await db.put("meta", {
-				key: META_KEY,
-				schemaVersion: meta.schemaVersion,
-			});
+			const goals = normalizeGoalsFromMeta(meta);
+			delete goals[exerciseTypeId];
+			await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
+		},
+
+		async getAllExerciseTypes() {
+			const db = await getDb();
+			return db.getAll("exerciseTypes");
+		},
+
+		async putExerciseType(row: PersistedExerciseType) {
+			const db = await getDb();
+			await db.put("exerciseTypes", row);
+		},
+
+		async getExerciseType(id: string) {
+			const db = await getDb();
+			return db.get("exerciseTypes", id);
 		},
 
 		async getMeta() {
@@ -104,11 +127,8 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 		async setMeta(meta: PersistedMeta) {
 			const db = await getDb();
 			const prev = await readMetaRow(db);
-			await db.put("meta", {
-				key: META_KEY,
-				schemaVersion: meta.schemaVersion,
-				...(prev.goal ? { goal: prev.goal } : {}),
-			});
+			const goals = normalizeGoalsFromMeta(prev);
+			await db.put("meta", metaRowWithoutLegacyGoal({ ...prev, schemaVersion: meta.schemaVersion }, goals));
 		},
 	};
 }
@@ -125,5 +145,6 @@ export function getStorageAdapter(): StorageAdapter {
 /** Полное удаление БД на устройстве; следующее обращение к адаптеру создаст пустую БД. */
 export async function wipePushlogIndexedDatabase(): Promise<void> {
 	dbPromise = null;
+	singleton = null;
 	await deleteDB(DB_NAME);
 }

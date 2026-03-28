@@ -1,11 +1,10 @@
-import { DEFAULT_EXERCISE_TYPE_ID } from "@/shared/config/pushlog";
 import type { DayKey } from "@/shared/lib/day-key";
 import { sortSetsByCreatedAtAsc } from "./day-sets";
 import type { PushlogSet } from "./types";
 
-/** Повторить последний подход: сначала последний за выбранный день, иначе последний в истории для типа по умолчанию. */
-export function getRepeatLastReps(sets: PushlogSet[], targetDayKey: DayKey): number | null {
-	const forType = sets.filter((s) => s.exerciseTypeId === DEFAULT_EXERCISE_TYPE_ID);
+/** Повторить последний подход: сначала последний за выбранный день, иначе последний в истории для данного типа. */
+export function getRepeatLastReps(sets: PushlogSet[], targetDayKey: DayKey, exerciseTypeId: string): number | null {
+	const forType = sets.filter((s) => s.exerciseTypeId === exerciseTypeId);
 	const daySets = forType.filter((s) => s.dayKey === targetDayKey);
 	if (daySets.length > 0) {
 		const sorted = sortSetsByCreatedAtAsc(daySets);
