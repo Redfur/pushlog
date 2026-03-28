@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePushlogStore } from "@/entities/pushup";
 import { type DayKey, dayKeyToLocalDate, localDateToDayKey, nowDayKey, offsetDayKey } from "@/shared/lib/day-key";
-import { formatDayKeyLabel } from "@/shared/lib/format-day";
+import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
 
 type Props = {
@@ -20,7 +20,7 @@ const dayCalendarHasSetsClass =
 	"[&_button]:relative [&_button]:after:pointer-events-none [&_button]:after:absolute [&_button]:after:bottom-0.25 [&_button]:after:left-1/2 [&_button]:after:size-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-primary [&_button[data-selected-single=true]]:after:bg-primary-foreground";
 
 export function DayNavigation({ dayKey, timeZone }: Props) {
-	const { t } = useTranslation(MAIN_SCREEN_NS);
+	const { t, i18n } = useTranslation(MAIN_SCREEN_NS);
 	const navigate = useNavigate();
 	const [pickerOpen, setPickerOpen] = useState(false);
 	const sets = usePushlogStore((s) => s.sets);
@@ -32,10 +32,17 @@ export function DayNavigation({ dayKey, timeZone }: Props) {
 		return next;
 	}, [sets]);
 	const todayKey = nowDayKey(timeZone);
+	const yesterdayKey = offsetDayKey(todayKey, -1, timeZone);
 	const prevKey = offsetDayKey(dayKey, -1, timeZone);
 	const nextKey = offsetDayKey(dayKey, 1, timeZone);
 	const canGoNext = nextKey <= todayKey;
-	const label = formatDayKeyLabel(dayKey, "ru-RU");
+	const locale = bcp47FromI18nLang(i18n.language);
+	const label =
+		dayKey === todayKey
+			? t("title")
+			: dayKey === yesterdayKey
+				? t("titleYesterday")
+				: formatDayKeyFriendly(dayKey, locale);
 	const selectedDate = dayKeyToLocalDate(dayKey);
 
 	return (

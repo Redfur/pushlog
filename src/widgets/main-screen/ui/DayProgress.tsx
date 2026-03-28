@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import type { PushlogSet } from "@/entities/pushup";
 import { totalRepsForDay, usePushlogStore } from "@/entities/pushup";
 import { DEFAULT_EXERCISE_TYPE_ID } from "@/shared/config/pushlog";
-import { formatDayKeyLabel } from "@/shared/lib/format-day";
+import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
 
 type Props = {
@@ -15,7 +15,8 @@ type Props = {
 };
 
 export function DayProgress({ sets, dayKey, isToday, isYesterday }: Props) {
-	const { t } = useTranslation(MAIN_SCREEN_NS);
+	const { t, i18n } = useTranslation(MAIN_SCREEN_NS);
+	const locale = bcp47FromI18nLang(i18n.language);
 	const goal = usePushlogStore((s) => s.goal);
 	const total = totalRepsForDay(sets, dayKey);
 	const activeGoal = goal?.exerciseTypeId === DEFAULT_EXERCISE_TYPE_ID ? goal : null;
@@ -23,7 +24,7 @@ export function DayProgress({ sets, dayKey, isToday, isYesterday }: Props) {
 		? t("title")
 		: isYesterday
 			? t("titleYesterday")
-			: t("titleDay", { date: formatDayKeyLabel(dayKey, "ru-RU") });
+			: t("titleDay", { date: formatDayKeyFriendly(dayKey, locale) });
 
 	return (
 		<Card>

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import type { PushlogSet } from "@/entities/pushup";
 import { sortSetsByCreatedAtAsc } from "@/entities/pushup";
 import { REMOVE_SET_NS, useRemoveSet } from "@/features/remove-set";
+import { bcp47FromI18nLang } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, locale: string | undefined): string {
 	try {
-		return new Intl.DateTimeFormat(undefined, {
+		return new Intl.DateTimeFormat(locale, {
 			hour: "2-digit",
 			minute: "2-digit",
 		}).format(new Date(iso));
@@ -22,7 +23,8 @@ type Props = {
 };
 
 export function DaySetsList({ sets }: Props) {
-	const { t } = useTranslation(MAIN_SCREEN_NS);
+	const { t, i18n } = useTranslation(MAIN_SCREEN_NS);
+	const locale = bcp47FromI18nLang(i18n.language);
 	const { t: tRm } = useTranslation(REMOVE_SET_NS);
 	const remove = useRemoveSet();
 	const ordered = sortSetsByCreatedAtAsc(sets);
@@ -40,7 +42,7 @@ export function DaySetsList({ sets }: Props) {
 				>
 					<div className="flex min-w-0 flex-1 items-baseline gap-2">
 						<span className="text-lg font-semibold tabular-nums">{row.reps}</span>
-						<span className="text-muted-foreground text-sm">{formatTime(row.createdAt)}</span>
+						<span className="text-muted-foreground text-sm">{formatTime(row.createdAt, locale)}</span>
 					</div>
 					<Button
 						type="button"

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buildDailyActivitySeries, lastNDaysInclusive, type PushlogSet } from "@/entities/pushup";
 import type { DayKey } from "@/shared/lib/day-key";
-import { formatDayKeyLabel } from "@/shared/lib/format-day";
+import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { STATS_NS } from "../translations";
 
 type Period = 7 | 30;
@@ -13,7 +13,8 @@ type Period = 7 | 30;
 /** Высота области графика (как `h-56`); число нужно для `ResponsiveContainer`, иначе при `height="100%"` до ResizeObserver размеры бывают -1 и Recharts ругается в консоли. */
 const TREND_CHART_HEIGHT_PX = 224;
 
-function shortDayLabel(dayKey: DayKey, locale: string): string {
+/** Короткие подписи оси (число.число) — компактно на узких экранах. */
+function shortDayLabel(dayKey: DayKey, locale: string | undefined): string {
 	const [y, m, d] = dayKey.split("-").map(Number);
 	const date = new Date(y, m - 1, d);
 	return new Intl.DateTimeFormat(locale, {
@@ -38,7 +39,7 @@ type Props = {
 export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 	const { t, i18n } = useTranslation(STATS_NS);
 	const [period, setPeriod] = useState<Period>(7);
-	const locale = i18n.language === "ru" ? "ru-RU" : i18n.language;
+	const locale = bcp47FromI18nLang(i18n.language);
 
 	const rows = useMemo(() => {
 		const keys = lastNDaysInclusive(todayKey, period, timeZone);
@@ -105,7 +106,7 @@ export function StatsTrendCharts({ sets, todayKey, timeZone }: Props) {
 											const row = payload[0]?.payload as ChartRow;
 											return (
 												<div className="bg-popover text-popover-foreground rounded-md border px-2 py-1.5 text-xs shadow-md">
-													<p className="font-medium">{formatDayKeyLabel(row.dayKey, locale)}</p>
+													<p className="font-medium">{formatDayKeyFull(row.dayKey, locale)}</p>
 													<p>
 														{t("tooltipReps")}: {row.reps}
 													</p>

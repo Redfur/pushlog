@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { buildHeatmapGrid, type PushlogSet } from "@/entities/pushup";
 import type { DayKey } from "@/shared/lib/day-key";
-import { formatDayKeyLabel } from "@/shared/lib/format-day";
+import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { cn } from "@/shared/lib/utils";
 import { STATS_NS } from "../translations";
 
@@ -19,7 +19,7 @@ const HEATMAP_LABEL_COL_PX = 36;
 
 const WEEKDAY_ROW_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
-function weekdayShortMonFirst(locale: string, weekdayIndex: number): string {
+function weekdayShortMonFirst(locale: string | undefined, weekdayIndex: number): string {
 	const d = new Date(2024, 0, 1 + weekdayIndex);
 	return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d);
 }
@@ -42,7 +42,7 @@ type Props = {
 
 export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 	const { t, i18n } = useTranslation(STATS_NS);
-	const locale = i18n.language === "ru" ? "ru-RU" : i18n.language;
+	const locale = bcp47FromI18nLang(i18n.language);
 
 	const cells = useMemo(() => buildHeatmapGrid(sets, todayKey, timeZone, WEEKS), [sets, todayKey, timeZone]);
 
@@ -97,7 +97,7 @@ export function StatsHeatmap({ sets, todayKey, timeZone }: Props) {
 											isFuture || !cell.dayKey
 												? t("heatmapFuture")
 												: t("heatmapDayTooltip", {
-														date: formatDayKeyLabel(cell.dayKey, locale),
+														date: formatDayKeyFull(cell.dayKey, locale),
 														reps: cell.reps,
 													});
 										const rowKey = WEEKDAY_ROW_KEYS[wd] ?? "d";

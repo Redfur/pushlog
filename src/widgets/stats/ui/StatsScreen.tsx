@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { computeStats, usePushlogStore } from "@/entities/pushup";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
+import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
 import { StatsTrendCharts } from "./StatsTrendCharts";
 
 export function StatsScreen() {
-	const { t } = useTranslation(STATS_NS);
+	const { t, i18n } = useTranslation(STATS_NS);
+	const locale = bcp47FromI18nLang(i18n.language);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const timeZone = usePushlogStore((s) => s.timeZone);
@@ -82,7 +84,7 @@ export function StatsScreen() {
 					{stats.bestDay ? (
 						<p className="text-lg tabular-nums">
 							{t("bestDayValue", {
-								date: stats.bestDay.dayKey,
+								date: formatDayKeyFull(stats.bestDay.dayKey, locale),
 								count: stats.bestDay.totalReps,
 							})}
 						</p>

@@ -5,7 +5,7 @@ import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
 import { useAddSet } from "@/features/add-set";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { canLogSetsForDay, type DayKey, offsetDayKey } from "@/shared/lib/day-key";
-import { formatDayKeyLabel } from "@/shared/lib/format-day";
+import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
 import { DayNavigation } from "./DayNavigation";
 import { DayProgress } from "./DayProgress";
@@ -17,7 +17,8 @@ type Props = {
 };
 
 export function MainScreen({ dayKey }: Props) {
-	const { t } = useTranslation(MAIN_SCREEN_NS);
+	const { t, i18n } = useTranslation(MAIN_SCREEN_NS);
+	const locale = bcp47FromI18nLang(i18n.language);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const timeZone = usePushlogStore((s) => s.timeZone);
@@ -48,7 +49,7 @@ export function MainScreen({ dayKey }: Props) {
 					? t("title")
 					: isYesterday
 						? t("titleYesterday")
-						: t("titleDay", { date: formatDayKeyLabel(dayKey, "ru-RU") })}
+						: t("titleDay", { date: formatDayKeyFriendly(dayKey, locale) })}
 			</h1>
 			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
 			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
