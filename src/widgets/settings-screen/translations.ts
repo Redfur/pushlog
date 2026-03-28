@@ -13,6 +13,9 @@ export const settingsScreenTranslations = {
 		regionSection: "Регион и цели",
 		exercisesCatalogHint: "Список и настройка типов упражнений — на главной странице и в карточке каждого типа.",
 		exercisesCatalogLink: "Перейти на главную",
+		dailyGoalHint:
+			"Дневную цель по типу можно задать в режиме редактирования упражнения (главная → тип → «Редактировать»).",
+		dailyGoalLink: "На главную",
 		dangerSection: "Данные и сброс",
 		clearIndexedDb: "Удалить данные тренировок",
 		clearIndexedDbDetail:

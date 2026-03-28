@@ -16,7 +16,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePushlogStore } from "@/entities/pushup";
-import { GoalSettingsCard } from "@/features/set-daily-goal";
 import { TimezoneSelect } from "@/features/set-timezone";
 import { clearClientStoragePreferences } from "@/shared/lib/clear-client-storage";
 import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
@@ -137,8 +136,13 @@ export function SettingsScreen() {
 							{t("exercisesCatalogLink")}
 						</Link>
 					</p>
+					<p className="text-muted-foreground text-xs leading-snug">
+						{t("dailyGoalHint")}{" "}
+						<Link to="/" className="text-primary font-medium underline-offset-4 hover:underline">
+							{t("dailyGoalLink")}
+						</Link>
+					</p>
 					<TimezoneSelect />
-					<GoalSettingsCard />
 				</CardContent>
 			</Card>
 

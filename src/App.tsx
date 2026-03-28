@@ -30,6 +30,11 @@ const ExercisePage = lazy(async () => {
 	return { default: m.ExercisePage };
 });
 
+const ExerciseEditPage = lazy(async () => {
+	const m = await import("@/pages/exercise-detail");
+	return { default: m.ExerciseEditPage };
+});
+
 function StatsRouteFallback() {
 	const { t } = useTranslation(COMMON_NS);
 	return (
@@ -74,6 +79,22 @@ function AppRoutes() {
 		<Routes>
 			<Route path="/" element={<HomePage />} />
 			<Route path="/day/:dayKey" element={<DayPage />} />
+			<Route
+				path="/exercises/new"
+				element={
+					<Suspense fallback={<ExerciseRouteFallback />}>
+						<ExercisePage />
+					</Suspense>
+				}
+			/>
+			<Route
+				path="/exercises/:exerciseId/edit"
+				element={
+					<Suspense fallback={<ExerciseRouteFallback />}>
+						<ExerciseEditPage />
+					</Suspense>
+				}
+			/>
 			<Route
 				path="/exercises/:exerciseId"
 				element={

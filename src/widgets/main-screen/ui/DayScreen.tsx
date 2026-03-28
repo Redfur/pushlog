@@ -1,10 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
-import { useAddSet } from "@/features/add-set";
-import { ExerciseTypeSelect } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { canLogSetsForDay, type DayKey, offsetDayKey } from "@/shared/lib/day-key";
 import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
@@ -12,7 +9,7 @@ import { MAIN_SCREEN_NS } from "../translations";
 import { DayNavigation } from "./DayNavigation";
 import { DayProgress } from "./DayProgress";
 import { DaySetsList } from "./DaySetsList";
-import { QuickAddPanel } from "./QuickAddPanel";
+import { ExerciseQuickAddBlock } from "./ExerciseQuickAddBlock";
 
 type Props = {
 	dayKey: DayKey;
@@ -31,16 +28,12 @@ export function DayScreen({ dayKey }: Props) {
 	const isYesterday = dayKey === yesterdayKey;
 	const canLog = canLogSetsForDay(dayKey, timeZone);
 
-	const { addReps, repeatLast } = useAddSet(dayKey);
-
 	const daySets = useMemo(() => filterSetsByDayKey(sets, dayKey), [sets, dayKey]);
 
 	const hasActiveExerciseTypes = useMemo(
 		() => Object.values(exerciseTypesById).some((x) => !x.archivedAt),
 		[exerciseTypesById],
 	);
-
-	const allowLog = canLog && hasActiveExerciseTypes;
 
 	if (!hydrated) {
 		return (
@@ -63,16 +56,11 @@ export function DayScreen({ dayKey }: Props) {
 			</h1>
 			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
 			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
-			<ExerciseTypeSelect />
-			{canLog && !hasActiveExerciseTypes ? (
-				<p className="text-muted-foreground text-sm">
-					{t("noActiveExercisesHint")}{" "}
-					<Link to="/exercises/new" className="text-primary font-medium underline-offset-4 hover:underline">
-						{t("noActiveExercisesLink")}
-					</Link>
-				</p>
-			) : null}
-			<QuickAddPanel canAddSet={allowLog} dayAllowsLogging={canLog} addReps={addReps} repeatLast={repeatLast} />
+			<ExerciseQuickAddBlock
+				dayKey={dayKey}
+				dayAllowsLogging={canLog}
+				hasActiveExerciseTypes={hasActiveExerciseTypes}
+			/>
 			<DaySetsList sets={daySets} />
 		</div>
 	);

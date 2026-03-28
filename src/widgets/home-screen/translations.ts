@@ -4,13 +4,12 @@ export const homeScreenTranslations = {
 	ru: {
 		title: "Главная",
 		todaySummaryTitle: "Сегодня",
-		todayTotalSetsLabel: "Подходов за день",
-		todayTotalRepsLabel: "Повторений всего",
+		todayAllTypesCardTitle: "Все упражнения",
+		cardSetsToday: "Подходов сегодня",
+		cardRepsToday: "Повторений сегодня",
 		todayRepsMixedHint: "Сумма по всем типам; разные упражнения нельзя складывать как одну метрику.",
 		exercisesSection: "Упражнения",
 		addExercise: "Добавить упражнение",
 		openDayCalendar: "День и календарь",
-		repsSetsLine: "{{reps}} повт. · {{sets}} подх.",
-		chooseForLogHint: "Выберите тип для следующей записи:",
 	},
 } as const;

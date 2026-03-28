@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +9,6 @@ import {
 	defaultExerciseTypeDraft,
 	type ExerciseTypeDraft,
 	ExerciseTypeEditorFields,
-	exerciseTypeDraftFromPersisted,
 	MANAGE_EXERCISES_NS,
 	normalizeExerciseTypeDraft,
 } from "@/features/manage-exercises";
@@ -18,14 +17,15 @@ import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { isExerciseTypeUuid, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 
 export function ExercisePage() {
-	const { exerciseId: rawParam } = useParams<{ exerciseId: string }>();
+	const loc = useLocation();
+	const { exerciseId: paramId } = useParams<{ exerciseId?: string }>();
+	const rawParam = paramId ?? (loc.pathname === "/exercises/new" ? "new" : undefined);
 	const navigate = useNavigate();
 	const { t } = useTranslation(MANAGE_EXERCISES_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 	const addExerciseType = usePushlogStore((s) => s.addExerciseType);
-	const updateExerciseType = usePushlogStore((s) => s.updateExerciseType);
 	const archiveExerciseType = usePushlogStore((s) => s.archiveExerciseType);
 	const unarchiveExerciseType = usePushlogStore((s) => s.unarchiveExerciseType);
 	const timeZone = usePushlogStore((s) => s.timeZone);
@@ -44,11 +44,7 @@ export function ExercisePage() {
 			setHexError(null);
 			return;
 		}
-		if (et) {
-			setDraft(exerciseTypeDraftFromPersisted(et));
-			setHexError(null);
-		}
-	}, [isNew, et]);
+	}, [isNew]);
 
 	const statsAll = useMemo(
 		() => (validId ? computeStatsForExerciseType(sets, validId, todayKey, timeZone) : null),
@@ -63,7 +59,7 @@ export function ExercisePage() {
 	const todayReps = useMemo(() => todaySetsForType.reduce((a, s) => a + s.reps, 0), [todaySetsForType]);
 	const todaySetCount = todaySetsForType.length;
 
-	async function handleSave() {
+	async function handleSaveNew() {
 		const normalized = normalizeExerciseTypeDraft(draft, t("hexInvalid"));
 		if (!normalized.ok) {
 			if (normalized.error) setHexError(normalized.error);
@@ -71,12 +67,8 @@ export function ExercisePage() {
 		}
 		setHexError(null);
 		const { name, iconKey, colorKind, colorValue } = normalized.value;
-		if (isNew) {
-			const id = await addExerciseType({ name, iconKey, colorKind, colorValue });
-			if (id) navigate(`/exercises/${id}`, { replace: true });
-			return;
-		}
-		if (validId) await updateExerciseType(validId, { name, iconKey, colorKind, colorValue });
+		const id = await addExerciseType({ name, iconKey, colorKind, colorValue });
+		if (id) navigate(`/exercises/${id}`, { replace: true });
 	}
 
 	if (!hydrated) {
@@ -105,7 +97,7 @@ export function ExercisePage() {
 					<Button type="button" variant="outline" asChild>
 						<Link to="/">{t("backHome")}</Link>
 					</Button>
-					<Button type="button" onClick={() => void handleSave()}>
+					<Button type="button" onClick={() => void handleSaveNew()}>
 						{t("save")}
 					</Button>
 				</div>
@@ -135,43 +127,70 @@ export function ExercisePage() {
 						<h1 className="text-xl font-semibold">{et.name}</h1>
 					</div>
 				</div>
-				<Button type="button" variant="outline" size="sm" asChild>
-					<Link to={`/stats/exercise/${et.id}`}>{t("statsExerciseLink")}</Link>
-				</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<Button type="button" size="sm" asChild>
+						<Link to={`/stats/exercise/${et.id}`}>{t("detailedStats")}</Link>
+					</Button>
+					<Button type="button" variant="outline" size="sm" asChild>
+						<Link to={`/exercises/${et.id}/edit`}>{t("editExercise")}</Link>
+					</Button>
+				</div>
 			</div>
 
 			{statsAll ? (
-				<div className="text-muted-foreground grid gap-1 text-sm tabular-nums">
-					<p>{t("miniToday", { reps: todayReps, sets: todaySetCount })}</p>
-					<p>
-						{t("miniAllTime", {
-							reps: statsAll.totalRepsAllTime,
-							sets: statsAll.totalSetsAllTime,
-							days: statsAll.activeDaysCount,
-						})}
-					</p>
+				<div className="flex flex-col gap-4">
+					<div>
+						<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("viewTodayTitle")}</h2>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium">{t("viewCardSets")}</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-semibold tabular-nums">{todaySetCount}</p>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium">{t("viewCardReps")}</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-semibold tabular-nums">{todayReps}</p>
+								</CardContent>
+							</Card>
+						</div>
+					</div>
+					<div>
+						<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("viewAllTimeTitle")}</h2>
+						<div className="grid gap-3 sm:grid-cols-2">
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium">{t("viewCardReps")}</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-semibold tabular-nums">{statsAll.totalRepsAllTime}</p>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium">{t("viewCardSets")}</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-semibold tabular-nums">{statsAll.totalSetsAllTime}</p>
+								</CardContent>
+							</Card>
+							<Card className="sm:col-span-2">
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium">{t("viewCardActiveDays")}</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<p className="text-2xl font-semibold tabular-nums">{statsAll.activeDaysCount}</p>
+								</CardContent>
+							</Card>
+						</div>
+					</div>
 				</div>
 			) : null}
-
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-medium">{t("sheetEditTitle")}</CardTitle>
-				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					<ExerciseTypeEditorFields
-						draft={draft}
-						onDraftChange={setDraft}
-						hexError={hexError}
-						onHexErrorClear={() => setHexError(null)}
-						t={t}
-						nameInputId="ex-edit-name"
-						iconSelectId="ex-edit-icon"
-					/>
-					<Button type="button" onClick={() => void handleSave()}>
-						{t("save")}
-					</Button>
-				</CardContent>
-			</Card>
 
 			<div className="flex flex-wrap gap-2">
 				{et.archivedAt ? (

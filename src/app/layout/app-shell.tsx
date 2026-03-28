@@ -22,11 +22,11 @@ const navLinkClassMobile = ({ isActive }: { isActive: boolean }) =>
 function HomeNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
 	const { t } = useTranslation(COMMON_NS);
 	const loc = useLocation();
-	const isHome = loc.pathname === "/";
+	const isHomeSection = loc.pathname === "/" || loc.pathname.startsWith("/exercises/");
 
 	if (variant === "sidebar") {
 		return (
-			<NavLink to="/" className={({ isActive }) => navLinkClass({ isActive: isActive || isHome })}>
+			<NavLink to="/" className={({ isActive }) => navLinkClass({ isActive: isActive || isHomeSection })}>
 				<Home className="size-5 shrink-0" />
 				<span>{t("navHome")}</span>
 			</NavLink>
@@ -34,7 +34,7 @@ function HomeNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
 	}
 
 	return (
-		<NavLink to="/" className={({ isActive }) => navLinkClassMobile({ isActive: isActive || isHome })}>
+		<NavLink to="/" className={({ isActive }) => navLinkClassMobile({ isActive: isActive || isHomeSection })}>
 			<Home className="size-5" />
 			<span>{t("navHome")}</span>
 		</NavLink>

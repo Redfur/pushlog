@@ -18,9 +18,11 @@ type Props = {
 	dayAllowsLogging: boolean;
 	addReps: (reps: number) => void;
 	repeatLast: () => void;
+	/** Если задано — заголовок с именем выбранного упражнения. */
+	selectedExerciseName?: string;
 };
 
-export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps, repeatLast }: Props) {
+export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps, repeatLast, selectedExerciseName }: Props) {
 	const { t } = useTranslation(MAIN_SCREEN_NS);
 	const { t: tAdd } = useTranslation(ADD_SET_NS);
 	const { customPresets, rememberPreset, removePreset } = useCustomQuickAddPresets();
@@ -44,7 +46,9 @@ export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps, repeatLast
 
 	return (
 		<div className="flex flex-col gap-3">
-			<p className="text-muted-foreground text-sm">{t("quickAdd")}</p>
+			<p className="text-muted-foreground text-sm">
+				{selectedExerciseName ? t("quickAddForExercise", { name: selectedExerciseName }) : t("quickAdd")}
+			</p>
 			<div className="flex flex-wrap items-center gap-2">
 				{QUICK_ADD_PRESETS.map((n) => (
 					<Button
