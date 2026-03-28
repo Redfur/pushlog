@@ -4,4 +4,10 @@ import { MANAGE_EXERCISES_NS, manageExercisesTranslations } from "./translations
 injectTranslation(MANAGE_EXERCISES_NS, manageExercisesTranslations as Record<string, Record<string, string>>);
 
 export { MANAGE_EXERCISES_NS } from "./translations";
-export { ManageExercisesScreen } from "./ui/ManageExercisesScreen";
+export { ExerciseTypeEditorFields } from "./ui/ExerciseTypeEditorFields";
+export {
+	defaultExerciseTypeDraft,
+	type ExerciseTypeDraft,
+	exerciseTypeDraftFromPersisted,
+	normalizeExerciseTypeDraft,
+} from "./ui/exercise-type-draft";

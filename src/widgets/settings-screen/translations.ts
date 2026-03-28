@@ -11,7 +11,8 @@ export const settingsScreenTranslations = {
 		languageCurrent: "Русский",
 		languageHint: "Другие языки интерфейса запланированы; пока доступен только русский.",
 		regionSection: "Регион и цели",
-		myExercises: "Мои упражнения",
+		exercisesCatalogHint: "Список и настройка типов упражнений — на главной странице и в карточке каждого типа.",
+		exercisesCatalogLink: "Перейти на главную",
 		dangerSection: "Данные и сброс",
 		clearIndexedDb: "Удалить данные тренировок",
 		clearIndexedDbDetail:

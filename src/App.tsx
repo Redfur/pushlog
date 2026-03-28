@@ -7,6 +7,7 @@ import { DayPage } from "@/pages/day";
 import { HomePage } from "@/pages/home";
 import { COMMON_NS } from "@/shared/i18n";
 
+import "@/widgets/home-screen";
 import "@/widgets/main-screen";
 
 const StatsPage = lazy(async () => {
@@ -19,14 +20,14 @@ const SettingsPage = lazy(async () => {
 	return { default: m.SettingsPage };
 });
 
-const SettingsExercisesPage = lazy(async () => {
-	const m = await import("@/pages/settings-exercises");
-	return { default: m.SettingsExercisesPage };
-});
-
 const StatsExercisePage = lazy(async () => {
 	const m = await import("@/pages/stats-exercise");
 	return { default: m.StatsExercisePage };
+});
+
+const ExercisePage = lazy(async () => {
+	const m = await import("@/pages/exercise-detail");
+	return { default: m.ExercisePage };
 });
 
 function StatsRouteFallback() {
@@ -59,11 +60,28 @@ function SettingsRouteFallback() {
 	);
 }
 
+function ExerciseRouteFallback() {
+	return (
+		<div className="flex flex-col gap-4 py-4">
+			<Skeleton className="h-8 w-48" />
+			<Skeleton className="h-40 w-full rounded-lg" />
+		</div>
+	);
+}
+
 function AppRoutes() {
 	return (
 		<Routes>
 			<Route path="/" element={<HomePage />} />
 			<Route path="/day/:dayKey" element={<DayPage />} />
+			<Route
+				path="/exercises/:exerciseId"
+				element={
+					<Suspense fallback={<ExerciseRouteFallback />}>
+						<ExercisePage />
+					</Suspense>
+				}
+			/>
 			<Route
 				path="/stats/exercise/:exerciseId"
 				element={
@@ -80,14 +98,7 @@ function AppRoutes() {
 					</Suspense>
 				}
 			/>
-			<Route
-				path="/settings/exercises"
-				element={
-					<Suspense fallback={<SettingsRouteFallback />}>
-						<SettingsExercisesPage />
-					</Suspense>
-				}
-			/>
+			<Route path="/settings/exercises" element={<Navigate to="/" replace />} />
 			<Route
 				path="/settings"
 				element={
@@ -96,7 +107,7 @@ function AppRoutes() {
 					</Suspense>
 				}
 			/>
-			<Route path="*" element={<Navigate to="/day/today" replace />} />
+			<Route path="*" element={<Navigate to="/" replace />} />
 		</Routes>
 	);
 }

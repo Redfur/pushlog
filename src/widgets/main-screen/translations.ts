@@ -20,6 +20,6 @@ export const mainScreenTranslations = {
 		dayNavPickDate: "Выбрать дату",
 		futureDayReadOnly: "Будущие дни недоступны для записи.",
 		noActiveExercisesHint: "Нет активных упражнений в каталоге — добавьте тип, чтобы записывать подходы.",
-		noActiveExercisesLink: "Мои упражнения",
+		noActiveExercisesLink: "Добавить упражнение",
 	},
 } as const;

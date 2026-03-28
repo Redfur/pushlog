@@ -18,7 +18,7 @@ type Props = {
 	dayKey: DayKey;
 };
 
-export function MainScreen({ dayKey }: Props) {
+export function DayScreen({ dayKey }: Props) {
 	const { t, i18n } = useTranslation(MAIN_SCREEN_NS);
 	const locale = bcp47FromI18nLang(i18n.language);
 	const hydrated = usePushlogStore((s) => s.hydrated);
@@ -36,7 +36,7 @@ export function MainScreen({ dayKey }: Props) {
 	const daySets = useMemo(() => filterSetsByDayKey(sets, dayKey), [sets, dayKey]);
 
 	const hasActiveExerciseTypes = useMemo(
-		() => Object.values(exerciseTypesById).some((t) => !t.archivedAt),
+		() => Object.values(exerciseTypesById).some((x) => !x.archivedAt),
 		[exerciseTypesById],
 	);
 
@@ -67,7 +67,7 @@ export function MainScreen({ dayKey }: Props) {
 			{canLog && !hasActiveExerciseTypes ? (
 				<p className="text-muted-foreground text-sm">
 					{t("noActiveExercisesHint")}{" "}
-					<Link to="/settings/exercises" className="text-primary font-medium underline-offset-4 hover:underline">
+					<Link to="/exercises/new" className="text-primary font-medium underline-offset-4 hover:underline">
 						{t("noActiveExercisesLink")}
 					</Link>
 				</p>

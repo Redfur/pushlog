@@ -1,12 +1,10 @@
-import { Activity, Home, Settings } from "lucide-react";
+import { Activity, CalendarDays, Home, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePushlogStore } from "@/entities/pushup";
-import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { COMMON_NS } from "@/shared/i18n";
-import { resolveDayRouteParam } from "@/shared/lib/day-key";
 import { cn } from "@/shared/lib/utils";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -17,22 +15,18 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 const navLinkClassMobile = ({ isActive }: { isActive: boolean }) =>
 	cn(
-		"text-muted-foreground flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-xs font-medium",
+		"text-muted-foreground flex flex-1 flex-col items-center gap-1 rounded-md py-2 text-[11px] font-medium leading-tight sm:text-xs",
 		isActive && "bg-accent text-foreground",
 	);
 
 function HomeNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
 	const { t } = useTranslation(COMMON_NS);
 	const loc = useLocation();
-	const timeZone = usePushlogStore((s) => s.timeZone);
-	const todayK = useTodayDayKey(timeZone);
-	const m = loc.pathname.match(/^\/day\/([^/]+)$/);
-	const resolved = m?.[1] ? resolveDayRouteParam(m[1], timeZone) : null;
-	const isViewingToday = resolved !== null && resolved === todayK;
+	const isHome = loc.pathname === "/";
 
 	if (variant === "sidebar") {
 		return (
-			<NavLink to="/day/today" className={({ isActive }) => navLinkClass({ isActive: isActive || isViewingToday })}>
+			<NavLink to="/" className={({ isActive }) => navLinkClass({ isActive: isActive || isHome })}>
 				<Home className="size-5 shrink-0" />
 				<span>{t("navHome")}</span>
 			</NavLink>
@@ -40,9 +34,31 @@ function HomeNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
 	}
 
 	return (
-		<NavLink to="/day/today" className={({ isActive }) => navLinkClassMobile({ isActive: isActive || isViewingToday })}>
+		<NavLink to="/" className={({ isActive }) => navLinkClassMobile({ isActive: isActive || isHome })}>
 			<Home className="size-5" />
 			<span>{t("navHome")}</span>
+		</NavLink>
+	);
+}
+
+function DayNavLink({ variant }: { variant: "sidebar" | "bottom" }) {
+	const { t } = useTranslation(COMMON_NS);
+	const loc = useLocation();
+	const isDaySection = loc.pathname.startsWith("/day/");
+
+	if (variant === "sidebar") {
+		return (
+			<NavLink to="/day/today" className={({ isActive }) => navLinkClass({ isActive: isActive || isDaySection })}>
+				<CalendarDays className="size-5 shrink-0" />
+				<span>{t("navDay")}</span>
+			</NavLink>
+		);
+	}
+
+	return (
+		<NavLink to="/day/today" className={({ isActive }) => navLinkClassMobile({ isActive: isActive || isDaySection })}>
+			<CalendarDays className="size-5" />
+			<span>{t("navDay")}</span>
 		</NavLink>
 	);
 }
@@ -121,6 +137,7 @@ export function AppShell({ children }: Props) {
 			<aside className="border-border bg-background fixed top-0 left-0 z-30 hidden h-svh w-64 flex-col border-r pt-4 lg:flex">
 				<nav className="flex flex-col gap-1 p-3">
 					<HomeNavLink variant="sidebar" />
+					<DayNavLink variant="sidebar" />
 					<StatsNavLink variant="sidebar" />
 					<SettingsNavLink variant="sidebar" />
 				</nav>
@@ -133,8 +150,9 @@ export function AppShell({ children }: Props) {
 			</main>
 
 			<nav className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur lg:hidden">
-				<div className="mx-auto flex max-w-lg justify-around gap-1 p-2 sm:gap-2">
+				<div className="mx-auto flex max-w-2xl justify-between gap-0.5 px-1 py-2 sm:gap-1">
 					<HomeNavLink variant="bottom" />
+					<DayNavLink variant="bottom" />
 					<StatsNavLink variant="bottom" />
 					<SettingsNavLink variant="bottom" />
 				</div>

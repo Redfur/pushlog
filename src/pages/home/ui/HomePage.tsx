@@ -1,5 +1,5 @@
-import { Navigate } from "react-router-dom";
+import { HomeScreen } from "@/widgets/home-screen";
 
 export function HomePage() {
-	return <Navigate to="/day/today" replace />;
+	return <HomeScreen />;
 }

@@ -5,8 +5,8 @@
 | Слой | Папка | Роль в Push log |
 |------|--------|-----------------|
 | App | `src/app/` | Провайдеры (i18n, theme), **инициализация store**, подключение persistence |
-| Pages | `src/pages/` | Маршруты: день, статистика (сводка и `/stats/exercise/:id`), настройки, `/settings/exercises` |
-| Widgets | `src/widgets/` | Крупные блоки экранов: `main-screen`, `stats` |
+| Pages | `src/pages/` | `/` (главная), `/day/:dayKey`, `/exercises/:id` и `new`, статистика, настройки |
+| Widgets | `src/widgets/` | `home-screen`, `main-screen` (день), `stats`, `settings-screen` |
 | Features | `src/features/` | `add-set`, `remove-set`, `select-exercise`, `set-daily-goal`, `manage-exercises`, … |
 | Entities | `src/entities/` | Домен: `pushup` (типы, представление Set/Goal, мелкие UI-кирпичи) |
 | Shared | `src/shared/` | `lib/` (дата, timezone, id), `config/` (пресеты, exercise id), **storage abstraction** |
@@ -21,7 +21,8 @@
 | Сущность упражнения / отжимания | `src/entities/pushup/` (`model/types.ts`, при необходимости `ui/`) |
 | Добавление подхода | `src/features/add-set/` |
 | Удаление подхода | `src/features/remove-set/` |
-| Главный экран | `src/widgets/main-screen/` |
+| Главная (сегодня) | `src/widgets/home-screen/` |
+| Экран дня | `src/widgets/main-screen/` (`DayScreen`) |
 | Статистика | `src/widgets/stats/` |
 
 Публичный API каждого слайса — только через `index.ts`.

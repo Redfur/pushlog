@@ -24,5 +24,11 @@ export const manageExercisesTranslations = {
 		hexInvalid: "Введите цвет в формате #RRGGBB.",
 		save: "Сохранить",
 		cancel: "Отмена",
+		newPageTitle: "Новое упражнение",
+		exerciseNotFound: "Упражнение не найдено.",
+		statsExerciseLink: "Статистика по упражнению",
+		miniToday: "Сегодня: {{reps}} повт., {{sets}} подх.",
+		miniAllTime: "Всего: {{reps}} повт., {{sets}} подх., {{days}} дн. с записями",
+		backHome: "На главную",
 	},
 } as const;
