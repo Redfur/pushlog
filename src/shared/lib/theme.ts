@@ -28,15 +28,10 @@ export function getThemePreference(): ThemePreference {
 }
 
 /** Эффективная светлая/тёмная тема с учётом режима «системная». */
-export function getResolvedTheme(): Theme {
+function getResolvedTheme(): Theme {
 	const pref = getThemePreference();
 	if (pref === "system") return getSystemTheme();
 	return pref;
-}
-
-/** @deprecated Используйте getResolvedTheme или getThemePreference */
-export function getTheme(): Theme {
-	return getResolvedTheme();
 }
 
 export const THEME_CHANGE_EVENT = "push-log-theme-change";
@@ -85,7 +80,7 @@ function attachSystemListener(): void {
 }
 
 /** Применить класс `dark` по текущему предпочтению и подписаться на системную тему при необходимости. */
-export function applyThemePreference(): void {
+function applyThemePreference(): void {
 	const preference = getThemePreference();
 	const resolved = getResolvedTheme();
 	applyDarkClass(resolved);
@@ -104,14 +99,6 @@ export function setThemePreference(preference: ThemePreference): void {
 		/* ignore */
 	}
 	applyThemePreference();
-}
-
-/**
- * Совместимость: явно задать светлую/тёмную тему (как раньше setTheme).
- * Сохраняет предпочтение light/dark, не system.
- */
-export function setTheme(theme: Theme): void {
-	setThemePreference(theme);
 }
 
 export function initTheme(): void {

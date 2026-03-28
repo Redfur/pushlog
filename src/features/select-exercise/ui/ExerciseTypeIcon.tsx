@@ -85,5 +85,3 @@ export function ExerciseTypeIcon({
 	const Icon = ICONS[key] ?? Activity;
 	return <Icon className={className} style={style} aria-hidden={ariaHidden} />;
 }
-
-export type { ExerciseTypeIconVisual } from "@/shared/config/exercise-type-presets";

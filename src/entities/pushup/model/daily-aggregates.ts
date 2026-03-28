@@ -3,14 +3,14 @@ import { dayKeyFromDate, offsetDayKey } from "@/shared/lib/day-key";
 import type { PushlogSet } from "./types";
 
 /** Одна точка ряда: календарный день и суммы за него. */
-export type DailyActivity = {
+type DailyActivity = {
 	dayKey: DayKey;
 	reps: number;
 	setCount: number;
 };
 
 /** Все дни от `fromDayKey` до `toDayKey` включительно (порядок по календарю). */
-export function enumerateDayKeysInclusive(fromDayKey: DayKey, toDayKey: DayKey, timeZone: string): DayKey[] {
+function enumerateDayKeysInclusive(fromDayKey: DayKey, toDayKey: DayKey, timeZone: string): DayKey[] {
 	if (fromDayKey > toDayKey) return [];
 	const out: DayKey[] = [];
 	let cur = fromDayKey;
@@ -62,7 +62,7 @@ const WEEKDAY_TO_MON0: Record<string, number> = {
 /**
  * День недели для календарного `dayKey` в `timeZone`: 0 = понедельник, 6 = воскресенье.
  */
-export function weekdayMonday0(dayKey: DayKey, timeZone: string): number {
+function weekdayMonday0(dayKey: DayKey, timeZone: string): number {
 	const [y, m, d] = dayKey.split("-").map(Number);
 	let utc = Date.UTC(y, m - 1, d, 12, 0, 0);
 	if (dayKeyFromDate(new Date(utc), timeZone) !== dayKey) {
@@ -80,7 +80,7 @@ export function weekdayMonday0(dayKey: DayKey, timeZone: string): number {
 }
 
 /** Понедельник той же недели, что и `dayKey` (в `timeZone`). */
-export function mondayOfWeekContaining(dayKey: DayKey, timeZone: string): DayKey {
+function mondayOfWeekContaining(dayKey: DayKey, timeZone: string): DayKey {
 	let d = dayKey;
 	for (let i = 0; i < 7; i++) {
 		if (weekdayMonday0(d, timeZone) === 0) return d;
@@ -89,7 +89,7 @@ export function mondayOfWeekContaining(dayKey: DayKey, timeZone: string): DayKey
 	return dayKey;
 }
 
-export type HeatmapCell = {
+type HeatmapCell = {
 	dayKey: DayKey | null;
 	reps: number;
 	weekIndex: number;

@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import biomePlugin from "vite-plugin-biome";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vite.dev/config/
 // GitHub Pages (project site): задать VITE_BASE_PATH=/repo-name/ в CI; локально — '/'.
@@ -16,12 +15,12 @@ export default defineConfig({
 		alias: {
 			"@": path.resolve(__dirname, "src"),
 		},
+		tsconfigPaths: true,
 	},
 	plugins: [
 		react(),
 		biomePlugin(),
 		tailwindcss(),
-		tsconfigPaths(),
 		VitePWA({
 			registerType: "autoUpdate",
 			manifest: false,

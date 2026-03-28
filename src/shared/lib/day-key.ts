@@ -38,7 +38,7 @@ export function offsetDayKey(dayKey: DayKey, offsetDays: number, timeZone: strin
 	return dayKeyFromDate(utc, timeZone);
 }
 
-export function isValidDayKey(value: string): boolean {
+function isValidDayKey(value: string): boolean {
 	if (!DAY_KEY_RE.test(value)) return false;
 	const [y, m, d] = value.split("-").map(Number);
 	const dt = new Date(Date.UTC(y, m - 1, d));

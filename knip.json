@@ -2,22 +2,5 @@
 	"$schema": "https://unpkg.com/knip@6/schema.json",
 	"project": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"],
 	"ignore": ["src/components/ui/**"],
-	"ignoreDependencies": ["next-themes", "globals"],
-	"ignoreIssues": {
-		"src/features/*/index.ts": ["exports", "types"],
-		"src/widgets/*/index.ts": ["exports", "types"],
-		"src/entities/*/index.ts": ["exports", "types"],
-		"src/entities/pushup/model/daily-aggregates.ts": ["exports", "types"],
-		"src/entities/pushup/model/day-sets.ts": ["exports"],
-		"src/shared/i18n/index.ts": ["exports"],
-		"src/shared/lib/clear-client-storage.ts": ["exports"],
-		"src/shared/lib/preferred-exercise-type.ts": ["exports"],
-		"src/shared/lib/day-key.ts": ["exports"],
-		"src/shared/lib/theme.ts": ["exports"],
-		"src/shared/lib/storage/index.ts": ["exports", "types"],
-		"src/shared/lib/storage/indexed-db-adapter.ts": ["exports"],
-		"src/shared/config/exercise-type-presets.ts": ["exports", "types"],
-		"src/features/manage-exercises/ui/exercise-type-draft.ts": ["types"],
-		"src/features/select-exercise/ui/ExerciseTypeIcon.tsx": ["types"]
-	}
+	"ignoreDependencies": ["next-themes", "globals"]
 }

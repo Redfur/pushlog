@@ -18,12 +18,3 @@ export function writePreferredExerciseTypeId(id: string): void {
 		/* ignore */
 	}
 }
-
-export function clearStoredPreferredExerciseType(): void {
-	if (typeof localStorage === "undefined") return;
-	try {
-		localStorage.removeItem(CLIENT_STORAGE_KEYS.preferredExerciseType);
-	} catch {
-		/* ignore */
-	}
-}

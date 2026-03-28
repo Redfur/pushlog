@@ -64,7 +64,7 @@ async function readMetaRow(db: IDBPDatabase<PushlogDBSchema>): Promise<MetaRowGo
 	return row;
 }
 
-export function createIndexedDbStorageAdapter(): StorageAdapter {
+function createIndexedDbStorageAdapter(): StorageAdapter {
 	return {
 		async getAllSets() {
 			const db = await getDb();

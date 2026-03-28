@@ -17,7 +17,7 @@ export function totalRepsForDayAndExercise(sets: PushlogSet[], dayKey: DayKey, e
 }
 
 /** Повторения за календарный день по каждому `exerciseTypeId`. */
-export function repsByExerciseTypeForDay(sets: PushlogSet[], dayKey: DayKey): Map<string, number> {
+function repsByExerciseTypeForDay(sets: PushlogSet[], dayKey: DayKey): Map<string, number> {
 	const m = new Map<string, number>();
 	for (const s of sets) {
 		if (s.dayKey !== dayKey) continue;
@@ -40,8 +40,4 @@ export function orderedRepsBreakdownForDay(
 
 export function sortSetsByCreatedAtAsc(sets: PushlogSet[]): PushlogSet[] {
 	return [...sets].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-}
-
-export function totalRepsForDay(sets: PushlogSet[], dayKey: string): number {
-	return filterSetsByDayKey(sets, dayKey).reduce((sum, s) => sum + s.reps, 0);
 }

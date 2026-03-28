@@ -27,7 +27,7 @@ export const EXERCISE_ICON_PRESET_KEYS = [
 	"trophy",
 ] as const;
 
-export type ExerciseIconPresetKey = (typeof EXERCISE_ICON_PRESET_KEYS)[number];
+type ExerciseIconPresetKey = (typeof EXERCISE_ICON_PRESET_KEYS)[number];
 
 const ICON_SET = new Set<string>(EXERCISE_ICON_PRESET_KEYS);
 
@@ -40,7 +40,7 @@ export function isValidExerciseIconKey(key: string): key is ExerciseIconPresetKe
  */
 export const EXERCISE_COLOR_PRESET_HEX = ["#e11d48", "#2563eb", "#16a34a", "#ca8a04", "#9333ea", "#ea580c"] as const;
 
-export type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_HEX)[number];
+type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_HEX)[number];
 
 const PRESET_HEX_SET = new Set<string>(EXERCISE_COLOR_PRESET_HEX);
 

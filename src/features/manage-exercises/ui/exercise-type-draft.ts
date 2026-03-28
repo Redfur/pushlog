@@ -42,7 +42,7 @@ export function exerciseTypeDraftFromPersisted(et: PersistedExerciseType): Exerc
 	};
 }
 
-export type NormalizedExerciseTypeSave = {
+type NormalizedExerciseTypeSave = {
 	name: string;
 	iconDisplay: ExerciseIconDisplay;
 	iconKey: string;
