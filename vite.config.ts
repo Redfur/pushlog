@@ -23,19 +23,36 @@ export default defineConfig({
 		tailwindcss(),
 		VitePWA({
 			registerType: "autoUpdate",
-			manifest: false,
-			includeAssets: [
-				"favicon.ico",
-				"apple-touch-icon.png",
-				"web-app-manifest-192x192.png",
-				"web-app-manifest-512x512.png",
-			],
+			manifestFilename: "site.webmanifest",
+			manifest: {
+				name: "push log",
+				short_name: "push log",
+				lang: "ru",
+				display: "standalone",
+				theme_color: "#ffffff",
+				background_color: "#ffffff",
+				icons: [
+					{
+						src: "web-app-manifest-192x192.png",
+						sizes: "192x192",
+						type: "image/png",
+						purpose: "maskable",
+					},
+					{
+						src: "web-app-manifest-512x512.png",
+						sizes: "512x512",
+						type: "image/png",
+						purpose: "maskable",
+					},
+				],
+			},
+			includeAssets: ["favicon.ico", "apple-touch-icon.png"],
 			workbox: {
 				globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
 				navigateFallback: `${base}index.html`,
 			},
 			devOptions: {
-				enabled: false,
+				enabled: true,
 			},
 		}),
 	],
