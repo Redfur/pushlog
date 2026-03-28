@@ -1,6 +1,5 @@
 export const YANDEX_METRIKA_CONFIG = {
-	// TODO
-	METRIKA_ID: "",
+	METRIKA_ID: "108288519",
 	SETTINGS: {
 		clickmap: true,
 		trackLinks: true,
