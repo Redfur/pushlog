@@ -8,6 +8,8 @@
 - Удаление подхода, undo через toasts, обработка ошибок storage (`lastError` в store).
 - PWA: `site.webmanifest`, Service Worker и precache через `vite-plugin-pwa` (офлайн после первой загрузки).
 
+**Временно (инфраструктура):** в корне проекта [`.npmrc`](../.npmrc) с `legacy-peer-deps=true` — из‑за рассинхрона peer `vite-plugin-pwa` (ожидает Vite ≤7) и фактического **Vite 8**. Убрать после того, как плагин официально поддержит Vite 8 и `npm install` проходит без этой настройки.
+
 ## 2. Улучшение UX
 
 - Расширение сценариев undo (единообразие по всем действиям).

@@ -6,6 +6,16 @@
 
 React 19, Vite 8, TypeScript, Zustand, react-router-dom, react-i18next, Tailwind CSS 4, shadcn/ui (Radix), IndexedDB через `idb`, PWA (`vite-plugin-pwa`).
 
+## Установка зависимостей
+
+В корне репозитория задан [`.npmrc`](.npmrc) с `legacy-peer-deps=true`: **`vite-plugin-pwa`** пока объявляет в `peerDependencies` только Vite до 7, тогда как проект на **Vite 8**. Флаг ослабляет проверку peer у npm и позволяет установить дерево зависимостей без ошибки `ERESOLVE`. Это **временная мера** до выхода версии плагина с официальной поддержкой Vite 8 — после обновления плагина имеет смысл убрать строку из `.npmrc` и проверить `npm install` без неё.
+
+Достаточно выполнить:
+
+```bash
+npm install
+```
+
 ## Команды
 
 | Команда | Назначение |
