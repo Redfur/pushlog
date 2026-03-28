@@ -5,12 +5,14 @@
 | Слой | Папка | Роль в Push log |
 |------|--------|-----------------|
 | App | `src/app/` | Провайдеры (i18n, theme), **инициализация store**, подключение persistence |
-| Pages | `src/pages/` | `/` (главная), `/day/:dayKey`, `/exercises/:id` и `new`, статистика, настройки |
+| Pages | `src/pages/` | `/` (главная), `/day/:dayKey`, `/exercises/new`, `/exercises/:exerciseId`, `/exercises/:exerciseId/edit`, `/stats`, `/stats/exercise/:exerciseId`, `/settings` |
 | Widgets | `src/widgets/` | `home-screen`, `main-screen` (день), `stats`, `settings-screen` |
-| Features | `src/features/` | `add-set`, `remove-set`, `select-exercise`, `set-daily-goal`, `manage-exercises`, … |
-| Entities | `src/entities/` | Домен: `pushup` (типы, представление Set/Goal, мелкие UI-кирпичи) |
-| Shared | `src/shared/` | `lib/` (дата, timezone, id), `config/` (пресеты, exercise id), **storage abstraction** |
+| Features | `src/features/` | `add-set`, `remove-set`, `select-exercise`, `set-daily-goal`, `manage-exercises`, `set-timezone` |
+| Entities | `src/entities/` | Домен: `pushup` (типы, Zustand store, `computeStats` / `computeStreak` / фильтры) |
+| Shared | `src/shared/` | `lib/` (дата, timezone, id, **storage**), `config/` (пресеты иконок/цветов, quick-add), `i18n` |
 | UI-kit | `src/components/ui/` | shadcn — без бизнес-логики |
+
+Перекрёстные хуки приложения (например «сегодня» по таймзоне store): `src/hooks/` — не FSD-слой, но используются страницами/виджетами.
 
 Импорт: только снизу вверх по слоям; `app` и `shared` — по правилам проекта.
 
@@ -18,10 +20,10 @@
 
 | Слайс | Путь |
 |-------|------|
-| Сущность упражнения / отжимания | `src/entities/pushup/` (`model/types.ts`, при необходимости `ui/`) |
+| Сущность упражнения / отжимания | `src/entities/pushup/` (`model/types.ts`, store, при необходимости `ui/`) |
 | Добавление подхода | `src/features/add-set/` |
 | Удаление подхода | `src/features/remove-set/` |
-| Главная (сегодня) | `src/widgets/home-screen/` |
+| Главная | `src/widgets/home-screen/` |
 | Экран дня | `src/widgets/main-screen/` (`DayScreen`) |
 | Статистика | `src/widgets/stats/` |
 
@@ -32,38 +34,51 @@
 **Расположение:** `src/entities/pushup/model/pushlog-store.ts` (store рядом с доменом, чтобы слой `features` не импортировал `app`).
 
 - Экспорт: `usePushlogStore` из `@/entities/pushup`
-- Гидрация при старте: `PushlogHydrationProvider` в `src/app/providers/`
+- Гидрация при старте: `PushlogHydrationProvider` в `src/app/providers/` (`pushlog-hydration.tsx`)
 
-**Структура состояния (логическая)**
+**Структура состояния**
 
-- `sets: Set[]` — кэш в памяти после гидрации из IndexedDB
-- `exerciseTypesById: Record<id, PersistedExerciseType>` — каталог типов (UUID, имя, иконка/цвет пресетов, `archivedAt` для мягкого архива)
+- `sets` — кэш подходов после гидрации из IndexedDB
+- `exerciseTypesById: Record<id, PersistedExerciseType>` — каталог типов (UUID, имя, иконка/цвет, `archivedAt`)
 - `goalsByExercise: Record<exerciseTypeId, Goal>`
-- `preferredExerciseTypeId` — только среди **активных** типов; в `localStorage`
-- `ui: { isHydrated: boolean; lastError: string | null }` — опционально
-- Производные **не обязаны** жить в state: `getTodaySets`, `computeStats`, `computeStreak` — функции селекторов/утилит в `entities/pushup/model` или рядом со store
+- `preferredExerciseTypeId` — только среди **активных** типов; персист в `localStorage`
+- `hydrated: boolean` — гидратация завершена (успех или ошибка чтения)
+- `lastError: string | null` — последняя ошибка storage / операций
+- `timeZone: string` — календарный «день» пользователя; предпочтение может храниться в `localStorage` (см. `setTimeZone`)
 
-**Actions (методы store)**
+Агрегаты **не** в store: `computeStats`, `computeStatsForExerciseType`, `computeStreak` — чистые функции в `entities/pushup/model`, импорт из `@/entities/pushup`.
+
+**Методы store (actions)**
 
 | Action | Назначение |
 |--------|------------|
-| `hydrate()` | Загрузка из `StorageAdapter` при старте |
-| `addSet(input)` | Создать `Set` (uuid, `dayKey` из `now`), append, запись в storage |
-| `removeSet(id)` | Удалить по id, обновить storage |
-| `getTodaySets()` | Фильтр по текущему `dayKey` (timezone из shared) |
-| `computeStats()` | Вернуть `Stats` по текущему массиву sets (+ goal при необходимости) |
-| `computeStreak()` | По множеству `dayKey`; для MVP можно вернуть число без отображения |
+| `hydrate()` | Загрузка sets, goals, exercise types из `StorageAdapter`; восстановление preferred и таймзоны |
+| `addSet(reps, options?)` | Создать подход (`dayKey`, `exerciseTypeId` из options или preferred) |
+| `removeSet(id)` | Удалить подход, запись в storage |
+| `restoreSet(row)` | Вернуть подход (undo) |
 | `setDailyGoal` / `clearDailyGoal` | Цель по `exerciseTypeId` |
-| `addExerciseType` / `updateExerciseType` / `archiveExerciseType` / `unarchiveExerciseType` | Каталог типов в IndexedDB |
+| `setPreferredExerciseTypeId` | Предпочитаемый тип (active only) + `localStorage` |
+| `addExerciseType` / `updateExerciseType` / `archiveExerciseType` / `unarchiveExerciseType` | Каталог в IndexedDB |
+| `setTimeZone` | Часовой пояс приложения + предпочтение в `localStorage` |
+| `clearError()` | Сброс `lastError` |
 
-Асинхронность: `hydrate` async; `addSet`/`removeSet` — async к storage, но UI обновляется оптимистично или с микролагом < целевого UX.
+Асинхронность: `hydrate` и операции записи в IDB — async; UI обновляется оптимистично там, где это реализовано в фичах.
 
-## Storage abstraction
+## Персистентность
 
-**Интерфейс (концептуально), расположение:** `src/shared/lib/storage/` или `src/shared/api/storage/`
+**IndexedDB** (через `idb`), адаптер: **`src/shared/lib/storage/`** (`getStorageAdapter`, `indexed-db-adapter`, `contract.ts`, `schema.ts`).
+
+Объекты хранения (логически):
+
+- `sets` — подходы
+- `exerciseTypes` — каталог типов
+- `meta` — версия схемы и **`goalsByExerciseTypeId`**
+
+**localStorage** (предпочтения клиента, не дублируют массив подходов): тема, таймзона, предпочитаемый тип упражнения — см. `src/shared/lib/client-storage-keys.ts` и `clear-client-storage.ts`.
+
+**Интерфейс StorageAdapter** (концептуально):
 
 ```ts
-// Контракт (описание для реализации)
 interface StorageAdapter {
   getAllSets(): Promise<Set[]>
   putSet(set: Set): Promise<void>
@@ -77,7 +92,7 @@ interface StorageAdapter {
 }
 ```
 
-**Реализация:** IndexedDB (`idb`): `sets`, `exerciseTypes`, `meta` (в т.ч. `goalsByExerciseTypeId`); миграция v2 с легаси `exercise.pushups` / `exercise.pullups` → UUID.
+Миграции: в адаптере (в т.ч. легаси `exercise.pushups` / `exercise.pullups` → UUID).
 
 **Будущее:** `ApiStorageAdapter` с тем же интерфейсом; выбор адаптера в `app` при старте (env).
 
@@ -85,9 +100,9 @@ interface StorageAdapter {
 
 ```
 UI (pages/widgets)
-    → feature (add-set / remove-set) вызывает action
+    → feature (add-set / remove-set / …) вызывает action
         → Zustand store обновляет память
-            → StorageAdapter.persist (IndexedDB)
+            → StorageAdapter → IndexedDB
 ```
 
 Обратный поток при старте:
@@ -96,17 +111,17 @@ UI (pages/widgets)
 app mount → hydrate() → StorageAdapter.get* → store → UI
 ```
 
-Подписка UI на store через хуки Zustand; тяжёлые вычисления stats — `useMemo` в селекторах или отдельные маленькие хуки в `entities/pushup`.
+Подписка UI на store через хуки Zustand; тяжёлые агрегаты — `useMemo` + `computeStats` и т.д.
 
 ## Переиспользование существующего кода
 
 - `@/components/ui/*` — кнопки, layout, skeleton
-- `@/shared/lib/id.ts` — `generateId()` для новых `Set`/`Goal`
+- `@/shared/lib/id.ts` — идентификаторы для новых `Set`/`Goal`
 - `@/shared/lib/utils.ts`, theme — как есть
-- `@/shared/config/*` — пресеты quick-add, пресеты иконок/цветов для типов (`exercise-type-presets`); список упражнений — в IndexedDB, не в статическом `EXERCISE_TYPES`
+- `@/shared/config/*` — пресеты quick-add, пресеты иконок/цветов; **каталог упражнений** — в IndexedDB
 - `@/shared/i18n` — базовые ключи; новые строки — в слайсах через `injectTranslation`
 
 ## Тестируемость
 
-- Чистые функции `computeStats` / `computeStreak` / `dayKeyFromDate` — unit-тесты без React.
+- Чистые функции `computeStats` / `computeStreak` / утилиты дня — unit-тесты без React.
 - `StorageAdapter` — мок в тестах store.

@@ -40,7 +40,7 @@ function resolvePreferredId(raw: string | null, byId: Record<string, PersistedEx
 	return firstActiveExerciseTypeId(byId);
 }
 
-export type NewExerciseTypeInput = {
+type NewExerciseTypeInput = {
 	name: string;
 	iconDisplay: ExerciseIconDisplay;
 	iconKey: string;
@@ -50,7 +50,7 @@ export type NewExerciseTypeInput = {
 	colorValue: string;
 };
 
-export type UpdateExerciseTypeInput = Partial<
+type UpdateExerciseTypeInput = Partial<
 	Pick<
 		PersistedExerciseType,
 		"name" | "iconDisplay" | "iconKey" | "iconEmojiText" | "nameInitialGlyph" | "colorKind" | "colorValue"

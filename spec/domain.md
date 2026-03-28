@@ -78,18 +78,25 @@
 |------|----------|
 | `id` | UUID |
 | `name` | Пользовательское имя |
-| `iconKey` | Ключ пресета иконки (Lucide) |
+| `iconDisplay` | `lucide` \| `text` (Lucide или emoji/текст) |
+| `iconKey` | Ключ пресета иконки (Lucide), если `iconDisplay === "lucide"` |
+| `iconEmojiText` | Режим `text`: ввод пользователя; пусто — показ `nameInitialGlyph` |
+| `nameInitialGlyph` | Первая графема названия (обновляется при сохранении формы) |
 | `colorKind` | `preset` \| `custom` |
-| `colorValue` | `chart-1`… или `#RRGGBB` |
-| `archivedAt` | ISO или `null` (архив — не в селекторах, данные и статистика сохраняются) |
+| `colorValue` | hex пресета или `#rrggbb` для custom |
+| `archivedAt` | ISO или `null` (архив — не в выборе для новых подходов) |
+| `createdAt` / `updatedAt` | ISO |
+| `version` | Версия строки для миграций |
 
 ### Набор Set (несколько дней)
+
+`exerciseTypeId` — UUID из каталога `exerciseTypes`.
 
 ```json
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440001",
-    "exerciseTypeId": "exercise.pushups",
+    "exerciseTypeId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "reps": 20,
     "createdAt": "2026-03-28T08:15:00.000Z",
     "dayKey": "2026-03-28",
@@ -97,7 +104,7 @@
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440002",
-    "exerciseTypeId": "exercise.pushups",
+    "exerciseTypeId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "reps": 15,
     "createdAt": "2026-03-28T08:16:30.000Z",
     "dayKey": "2026-03-28",
@@ -105,7 +112,7 @@
   },
   {
     "id": "550e8400-e29b-41d4-a716-446655440003",
-    "exerciseTypeId": "exercise.pushups",
+    "exerciseTypeId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
     "reps": 40,
     "createdAt": "2026-03-27T22:00:00.000Z",
     "dayKey": "2026-03-27",
@@ -119,9 +126,9 @@
 ```json
 {
   "id": "660e8400-e29b-41d4-a716-446655440000",
-  "exerciseTypeId": "exercise.pushups",
+  "exerciseTypeId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "targetRepsPerDay": 50,
-  "effectiveFrom": "2026-03-01",
+  "effectiveFrom": "2026-03-01T00:00:00.000Z",
   "updatedAt": "2026-03-28T10:00:00.000Z"
 }
 ```

@@ -11,6 +11,7 @@
     "format": "biome format --write",
     "check": "biome check",
     "check:fix": "biome check --write",
+    "knip": "knip",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -44,6 +45,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
     "globals": "^17.4.0",
+    "knip": "^6.1.0",
     "shadcn": "^4.0.8",
     "typescript": "~5.9.3",
     "vite": "^8.0.0",

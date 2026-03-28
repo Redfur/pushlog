@@ -5,4 +5,3 @@ injectTranslation(SELECT_EXERCISE_NS, selectExerciseTranslations as Record<strin
 
 export { SELECT_EXERCISE_NS } from "./translations";
 export { ExerciseTypeIcon } from "./ui/ExerciseTypeIcon";
-export { ExerciseTypeSelect } from "./ui/ExerciseTypeSelect";

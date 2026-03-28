@@ -44,9 +44,6 @@ export type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_HEX)[number];
 
 const PRESET_HEX_SET = new Set<string>(EXERCISE_COLOR_PRESET_HEX);
 
-/** Обратная совместимость импортов (теперь это те же hex, не ключи CSS). */
-export const EXERCISE_COLOR_PRESET_KEYS = EXERCISE_COLOR_PRESET_HEX;
-
 export function isValidExerciseColorPreset(value: string): boolean {
 	return PRESET_HEX_SET.has(value);
 }
