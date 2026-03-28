@@ -2,6 +2,5 @@
 export const CLIENT_STORAGE_KEYS = {
 	theme: "push-log-theme",
 	timeZone: "pushlog.timeZone",
-	quickAddPresets: "pushlog-quick-add-custom-presets-v1",
 	preferredExerciseType: "pushlog.preferredExerciseTypeId",
 } as const;

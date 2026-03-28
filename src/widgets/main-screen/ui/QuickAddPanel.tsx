@@ -1,12 +1,8 @@
-import { X } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ADD_SET_NS } from "@/features/add-set";
-import { QUICK_ADD_PRESETS } from "@/shared/config/pushlog";
 import { cn } from "@/shared/lib/utils";
-import { useCustomQuickAddPresets } from "../model/use-custom-quick-add-presets";
 import { MAIN_SCREEN_NS } from "../translations";
 
 const MAX_INPUT_REPS = 9999;
@@ -17,88 +13,102 @@ type Props = {
 	/** День в прошлом/сегодня по календарю; если false — показываем подсказку про будущее. */
 	dayAllowsLogging: boolean;
 	addReps: (reps: number) => void;
-	repeatLast: () => void;
-	/** Если задано — заголовок с именем выбранного упражнения. */
-	selectedExerciseName?: string;
 };
 
-export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps, repeatLast, selectedExerciseName }: Props) {
+function parseDraftInt(draft: string): number {
+	const n = Number.parseInt(draft.trim(), 10);
+	return Number.isFinite(n) ? n : 0;
+}
+
+function clampReps(n: number): number {
+	return Math.min(MAX_INPUT_REPS, Math.max(0, n));
+}
+
+function applyDelta(draft: string, delta: number): string {
+	const next = clampReps(parseDraftInt(draft) + delta);
+	if (next <= 0) return "";
+	return String(next);
+}
+
+export function QuickAddPanel({ canAddSet, dayAllowsLogging, addReps }: Props) {
 	const { t } = useTranslation(MAIN_SCREEN_NS);
-	const { t: tAdd } = useTranslation(ADD_SET_NS);
-	const { customPresets, rememberPreset, removePreset } = useCustomQuickAddPresets();
 	const [draft, setDraft] = useState("");
 
-	function parseAndApply(value: string): boolean {
-		const n = Number.parseInt(value.trim(), 10);
-		if (!Number.isFinite(n) || n < 1 || n > MAX_INPUT_REPS) return false;
-		void addReps(n);
-		rememberPreset(n);
+	const parsed = parseDraftInt(draft);
+	const validForSubmit = parsed >= 1 && parsed <= MAX_INPUT_REPS;
+
+	function submitReps(): boolean {
+		if (!canAddSet || !validForSubmit) return false;
+		void addReps(parsed);
+		setDraft("");
 		return true;
 	}
 
-	function onSubmitCustom(e: FormEvent) {
+	function onSubmit(e: FormEvent) {
 		e.preventDefault();
-		if (!canAddSet) return;
-		if (parseAndApply(draft)) {
-			setDraft("");
-		}
+		submitReps();
 	}
 
 	return (
 		<div className="flex flex-col gap-3">
-			<p className="text-muted-foreground text-sm">
-				{selectedExerciseName ? t("quickAddForExercise", { name: selectedExerciseName }) : t("quickAdd")}
-			</p>
-			<div className="flex flex-wrap items-center gap-2">
-				{QUICK_ADD_PRESETS.map((n) => (
-					<Button
-						key={`default-${n}`}
-						type="button"
-						size="lg"
-						variant="default"
-						disabled={!canAddSet}
-						onClick={() => void addReps(n)}
-					>
-						+{n}
-					</Button>
-				))}
-				{customPresets.map((n) => (
-					<div key={`custom-${n}`} className="relative inline-flex">
-						<Button type="button" size="lg" variant="default" disabled={!canAddSet} onClick={() => void addReps(n)}>
-							+{n}
-						</Button>
-						<button
-							type="button"
-							className="bg-background border-border text-muted-foreground hover:bg-muted hover:text-foreground absolute -top-1.5 -right-1.5 flex size-6 items-center justify-center rounded-full border text-xs shadow-sm"
-							aria-label={t("removePresetAria", { count: n })}
-							onClick={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								removePreset(n);
-							}}
-						>
-							<X className="size-3.5" />
-						</button>
-					</div>
-				))}
-				<form className="inline-flex" onSubmit={onSubmitCustom}>
-					<Input
-						aria-label={t("quickAddInputAria")}
-						className={cn(
-							buttonVariants({ variant: "outline", size: "lg" }),
-							"min-w-[5.5rem] max-w-[6.5rem] tabular-nums [appearance:textfield] placeholder:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-						)}
-						disabled={!canAddSet}
-						inputMode="numeric"
-						pattern="[0-9]*"
-						placeholder={tAdd("customPlaceholder")}
-						type="text"
-						value={draft}
-						onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 4))}
-					/>
-				</form>
-				<Button type="button" size="lg" variant="secondary" disabled={!canAddSet} onClick={() => repeatLast()}>
-					{tAdd("repeatLast")}
+			<form className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2" onSubmit={onSubmit}>
+				<Input
+					aria-label={t("quickAddRepsInputAria")}
+					className={cn(
+						"min-w-0 flex-1 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+					)}
+					disabled={!canAddSet}
+					inputMode="numeric"
+					pattern="[0-9]*"
+					placeholder={t("quickAddRepsPlaceholder")}
+					type="text"
+					value={draft}
+					onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 4))}
+				/>
+				<Button type="submit" className="shrink-0 sm:min-w-[7.5rem]" disabled={!canAddSet || !validForSubmit}>
+					{t("quickAddSubmit")}
+				</Button>
+			</form>
+			<div className="flex flex-wrap gap-2">
+				<Button
+					type="button"
+					variant="outline"
+					size="default"
+					disabled={!canAddSet || parsed <= 0}
+					aria-label={t("quickAddMinusOneAria")}
+					onClick={() => setDraft((d) => applyDelta(d, -1))}
+				>
+					-1
+				</Button>
+				<Button
+					type="button"
+					variant="outline"
+					size="default"
+					disabled={!canAddSet || parsed >= MAX_INPUT_REPS}
+					aria-label={t("quickAddPlusOneAria")}
+					onClick={() => setDraft((d) => applyDelta(d, 1))}
+				>
+					+1
+				</Button>
+				<Button
+					type="button"
+					variant="secondary"
+					size="default"
+					disabled={!canAddSet || parsed >= MAX_INPUT_REPS}
+					aria-label={t("quickAddPlusFiveAria")}
+					onClick={() => setDraft((d) => applyDelta(d, 5))}
+				>
+					+5
+				</Button>
+				<Button
+					type="button"
+					variant="secondary"
+					size="default"
+					disabled={!canAddSet || parsed >= MAX_INPUT_REPS}
+					aria-label={t("quickAddPlusTenAria")}
+					onClick={() => setDraft((d) => applyDelta(d, 10))}
+				>
+					+10
 				</Button>
 			</div>
 			{!dayAllowsLogging ? <p className="text-muted-foreground text-xs">{t("futureDayReadOnly")}</p> : null}

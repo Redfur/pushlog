@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePushlogStore } from "@/entities/pushup";
 import { useAddSet } from "@/features/add-set";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
@@ -23,7 +24,7 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 	const setPreferredExerciseTypeId = usePushlogStore((s) => s.setPreferredExerciseTypeId);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 
-	const { addReps, repeatLast } = useAddSet(dayKey);
+	const { addReps } = useAddSet(dayKey);
 	const allowLog = dayAllowsLogging && hasActiveExerciseTypes;
 
 	const activeSorted = useMemo(() => {
@@ -53,40 +54,39 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 	}
 
 	return (
-		<div className="flex flex-col gap-3">
-			<p className="text-muted-foreground text-xs">{t("quickAddTabsHint")}</p>
-			<div className="flex flex-wrap gap-2" role="tablist" aria-label={t("quickAddTabsAria")}>
-				{activeSorted.map((et) => {
-					const selected = et.id === effectivePreferredId;
-					const accent = resolveExerciseTypeColor(et);
-					return (
-						<Button
-							key={et.id}
-							type="button"
-							size="icon-lg"
-							variant="outline"
-							className={cn("size-11 rounded-full", selected && "border-primary bg-accent ring-2 ring-ring/40")}
-							aria-pressed={selected}
-							aria-label={et.name}
-							onClick={() => setPreferredExerciseTypeId(et.id)}
-						>
-							<ExerciseTypeIcon
-								exerciseType={pickExerciseTypeIconVisual(et)}
-								className="size-5"
-								style={{ color: accent }}
-								aria-hidden
-							/>
-						</Button>
-					);
-				})}
-			</div>
-			<QuickAddPanel
-				canAddSet={allowLog}
-				dayAllowsLogging={dayAllowsLogging}
-				addReps={addReps}
-				repeatLast={repeatLast}
-				selectedExerciseName={selectedName}
-			/>
-		</div>
+		<Card>
+			<CardHeader className="border-b border-border/60 pb-4">
+				<CardTitle>{t("quickAddCardTitle", { name: selectedName ?? "" })}</CardTitle>
+				<CardDescription>{t("quickAddTabsHint")}</CardDescription>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-4 pt-4">
+				<div className="flex flex-wrap gap-2" role="tablist" aria-label={t("quickAddTabsAria")}>
+					{activeSorted.map((et) => {
+						const selected = et.id === effectivePreferredId;
+						const accent = resolveExerciseTypeColor(et);
+						return (
+							<Button
+								key={et.id}
+								type="button"
+								size="icon-lg"
+								variant="outline"
+								className={cn("size-11 rounded-full", selected && "border-primary bg-accent ring-2 ring-ring/40")}
+								aria-pressed={selected}
+								aria-label={et.name}
+								onClick={() => setPreferredExerciseTypeId(et.id)}
+							>
+								<ExerciseTypeIcon
+									exerciseType={pickExerciseTypeIconVisual(et)}
+									className="size-5"
+									style={{ color: accent }}
+									aria-hidden
+								/>
+							</Button>
+						);
+					})}
+				</div>
+				<QuickAddPanel canAddSet={allowLog} dayAllowsLogging={dayAllowsLogging} addReps={addReps} />
+			</CardContent>
+		</Card>
 	);
 }
