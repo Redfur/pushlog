@@ -2,10 +2,12 @@ import { type DBSchema, deleteDB, type IDBPDatabase, openDB } from "idb";
 import type { StorageAdapter } from "./contract";
 import { type MetaRowGoals, metaRowWithoutLegacyGoal, normalizeGoalsFromMeta } from "./meta-goals";
 import { migrateExerciseCatalogV2 } from "./migrate-exercise-catalog-v2";
+import { migrateExerciseIconDisplayV3 } from "./migrate-exercise-icon-display-v3";
+import { normalizeExerciseTypeRow, type PersistedExerciseTypeLoose } from "./normalize-exercise-type-row";
 import type { PersistedExerciseType, PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
 
 const DB_NAME = "pushlog";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const CURRENT_SCHEMA_VERSION = 1;
 
 interface PushlogDBSchema extends DBSchema {
@@ -42,6 +44,9 @@ function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 				}
 				if (oldVersion < 2 && transaction) {
 					await migrateExerciseCatalogV2(transaction);
+				}
+				if (oldVersion < 3 && transaction) {
+					await migrateExerciseIconDisplayV3(transaction);
 				}
 			},
 		});
@@ -105,7 +110,8 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 
 		async getAllExerciseTypes() {
 			const db = await getDb();
-			return db.getAll("exerciseTypes");
+			const rows = await db.getAll("exerciseTypes");
+			return rows.map((row) => normalizeExerciseTypeRow(row as PersistedExerciseTypeLoose));
 		},
 
 		async putExerciseType(row: PersistedExerciseType) {
@@ -115,7 +121,8 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 
 		async getExerciseType(id: string) {
 			const db = await getDb();
-			return db.get("exerciseTypes", id);
+			const row = await db.get("exerciseTypes", id);
+			return row ? normalizeExerciseTypeRow(row as PersistedExerciseTypeLoose) : undefined;
 		},
 
 		async getMeta() {

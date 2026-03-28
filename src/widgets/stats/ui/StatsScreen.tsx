@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { computeStats, usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
-import { resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
@@ -65,7 +65,7 @@ export function StatsScreen() {
 										className="bg-card hover:bg-accent/50 flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors"
 									>
 										<span className="flex min-w-0 items-center gap-2">
-											<ExerciseTypeIcon iconKey={et.iconKey} style={{ color }} aria-hidden />
+											<ExerciseTypeIcon exerciseType={pickExerciseTypeIconVisual(et)} style={{ color }} aria-hidden />
 											<span className="min-w-0 truncate font-medium">{et.name}</span>
 											{et.archivedAt ? (
 												<span className="text-muted-foreground shrink-0 text-xs">{t("archivedBadge")}</span>

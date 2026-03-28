@@ -8,7 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { computeStatsForExerciseType, usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
-import { isExerciseTypeUuid, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import {
+	isExerciseTypeUuid,
+	pickExerciseTypeIconVisual,
+	resolveExerciseTypeColor,
+} from "@/shared/config/exercise-type-presets";
 import { STATS_NS } from "@/widgets/stats/translations";
 import { StatsHeatmap } from "@/widgets/stats/ui/StatsHeatmap";
 import { StatsTrendCharts } from "@/widgets/stats/ui/StatsTrendCharts";
@@ -62,7 +66,12 @@ export function StatsExercisePage() {
 		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-3">
-					<ExerciseTypeIcon iconKey={et.iconKey} className="size-9 shrink-0" style={{ color: accent }} aria-hidden />
+					<ExerciseTypeIcon
+						exerciseType={pickExerciseTypeIconVisual(et)}
+						className="size-9 shrink-0"
+						style={{ color: accent }}
+						aria-hidden
+					/>
 					<div className="min-w-0">
 						<h1 className="text-xl font-semibold">{et.name}</h1>
 						{et.archivedAt ? <p className="text-muted-foreground text-xs">{t("archivedBadge")}</p> : null}

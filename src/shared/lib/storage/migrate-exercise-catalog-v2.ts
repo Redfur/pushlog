@@ -1,10 +1,12 @@
 import {
 	createDefaultSeedExerciseType,
+	EXERCISE_COLOR_PRESET_HEX,
 	EXERCISE_TYPE_ROW_VERSION,
 	isExerciseTypeUuid,
 	isValidExerciseIconKey,
 	LEGACY_EXERCISE_TYPE_DEFAULTS,
 } from "@/shared/config/exercise-type-presets";
+import { firstGrapheme } from "@/shared/lib/first-grapheme";
 import { type MetaRowGoals, metaRowWithoutLegacyGoal, normalizeGoalsFromMeta } from "./meta-goals";
 import type { PersistedExerciseType, PersistedGoal, PersistedSet } from "./schema";
 
@@ -52,12 +54,16 @@ export async function migrateExerciseCatalogV2(transaction: VersionChangeTx): Pr
 		if (isExerciseTypeUuid(rawId)) {
 			const row = await etStore.get(rawId);
 			if (!row) {
+				const stubName = "Упражнение";
 				const stub: PersistedExerciseType = {
 					id: rawId,
-					name: "Упражнение",
+					name: stubName,
+					iconDisplay: "lucide",
 					iconKey: "activity",
+					iconEmojiText: "",
+					nameInitialGlyph: firstGrapheme(stubName),
 					colorKind: "preset",
-					colorValue: "chart-5",
+					colorValue: EXERCISE_COLOR_PRESET_HEX[4],
 					archivedAt: null,
 					createdAt: now,
 					updatedAt: now,
@@ -72,11 +78,15 @@ export async function migrateExerciseCatalogV2(transaction: VersionChangeTx): Pr
 		legacyToUuid.set(rawId, uuid);
 		const legacyDef = LEGACY_EXERCISE_TYPE_DEFAULTS[rawId];
 		const iconKey = legacyDef?.iconKey ?? "activity";
-		const colorValue = legacyDef?.colorValue ?? "chart-5";
+		const colorValue = legacyDef?.colorValue ?? EXERCISE_COLOR_PRESET_HEX[4];
+		const legacyName = legacyDef?.name ?? rawId;
 		const row: PersistedExerciseType = {
 			id: uuid,
-			name: legacyDef?.name ?? rawId,
+			name: legacyName,
+			iconDisplay: "lucide",
 			iconKey: isValidExerciseIconKey(iconKey) ? iconKey : "activity",
+			iconEmojiText: "",
+			nameInitialGlyph: firstGrapheme(legacyName),
 			colorKind: "preset",
 			colorValue,
 			archivedAt: null,

@@ -5,7 +5,11 @@ import type { PushlogSet } from "@/entities/pushup";
 import { sortSetsByCreatedAtAsc, usePushlogStore } from "@/entities/pushup";
 import { REMOVE_SET_NS, useRemoveSet } from "@/features/remove-set";
 import { ExerciseTypeIcon, SELECT_EXERCISE_NS } from "@/features/select-exercise";
-import { resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import {
+	lucideIconVisual,
+	pickExerciseTypeIconVisual,
+	resolveExerciseTypeColor,
+} from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
 
@@ -42,7 +46,7 @@ export function DaySetsList({ sets }: Props) {
 			{ordered.map((row) => {
 				const et = exerciseTypesById[row.exerciseTypeId];
 				const typeLabel = et?.name ?? tEx("unknownType");
-				const iconKey = et?.iconKey ?? "activity";
+				const iconVisual = et ? pickExerciseTypeIconVisual(et) : lucideIconVisual("activity");
 				const color = et ? resolveExerciseTypeColor(et) : undefined;
 
 				return (
@@ -51,7 +55,7 @@ export function DaySetsList({ sets }: Props) {
 						className="bg-card text-card-foreground flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
 					>
 						<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-							<ExerciseTypeIcon iconKey={iconKey} style={color ? { color } : undefined} aria-hidden />
+							<ExerciseTypeIcon exerciseType={iconVisual} style={color ? { color } : undefined} aria-hidden />
 							<span className="text-muted-foreground min-w-0 truncate text-sm">{typeLabel}</span>
 							<span className="text-lg font-semibold tabular-nums">{row.reps}</span>
 							<span className="text-muted-foreground text-sm">{formatTime(row.createdAt, locale)}</span>

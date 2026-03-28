@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
-import { resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import { HOME_SCREEN_NS } from "../translations";
 
 type Props = {
@@ -66,7 +66,7 @@ export function HomeTodayStatsCards({ todayKey }: Props) {
 							<Card className="hover:bg-accent/40 h-full transition-colors">
 								<CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
 									<ExerciseTypeIcon
-										iconKey={et.iconKey}
+										exerciseType={pickExerciseTypeIconVisual(et)}
 										className="size-5 shrink-0"
 										style={{ color: accent }}
 										aria-hidden

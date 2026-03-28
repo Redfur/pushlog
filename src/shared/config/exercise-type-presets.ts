@@ -1,6 +1,7 @@
+import { firstGrapheme } from "@/shared/lib/first-grapheme";
 import type { PersistedExerciseType } from "@/shared/lib/storage/schema";
 
-export const EXERCISE_TYPE_ROW_VERSION = 1;
+export const EXERCISE_TYPE_ROW_VERSION = 2;
 
 /** Допустимые ключи иконок (Lucide в UI). */
 export const EXERCISE_ICON_PRESET_KEYS = [
@@ -12,6 +13,18 @@ export const EXERCISE_ICON_PRESET_KEYS = [
 	"target",
 	"heart-pulse",
 	"person-standing",
+	"bike",
+	"footprints",
+	"waves",
+	"timer",
+	"medal",
+	"mountain",
+	"award",
+	"star",
+	"sparkles",
+	"music",
+	"coffee",
+	"trophy",
 ] as const;
 
 export type ExerciseIconPresetKey = (typeof EXERCISE_ICON_PRESET_KEYS)[number];
@@ -22,15 +35,37 @@ export function isValidExerciseIconKey(key: string): key is ExerciseIconPresetKe
 	return ICON_SET.has(key);
 }
 
-/** Пресеты цвета для графиков (CSS var --color-chart-n). */
-export const EXERCISE_COLOR_PRESET_KEYS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const;
+/**
+ * Готовые цвета пресета (hex). Единственный источник для UI-кнопок и резолва в `colorKind: "preset"`.
+ */
+export const EXERCISE_COLOR_PRESET_HEX = ["#e11d48", "#2563eb", "#16a34a", "#ca8a04", "#9333ea", "#ea580c"] as const;
 
-export type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_KEYS)[number];
+export type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_HEX)[number];
 
-const COLOR_PRESET_SET = new Set<string>(EXERCISE_COLOR_PRESET_KEYS);
+const PRESET_HEX_SET = new Set<string>(EXERCISE_COLOR_PRESET_HEX);
 
-export function isValidExerciseColorPreset(key: string): key is ExerciseColorPresetKey {
-	return COLOR_PRESET_SET.has(key);
+/** Легаси: в БД могли лежать токены `chart-1`…`chart-5` под var(--color-*). */
+const LEGACY_CHART_TOKEN_TO_HEX: Record<string, ExerciseColorPresetKey> = {
+	"chart-1": EXERCISE_COLOR_PRESET_HEX[0],
+	"chart-2": EXERCISE_COLOR_PRESET_HEX[1],
+	"chart-3": EXERCISE_COLOR_PRESET_HEX[2],
+	"chart-4": EXERCISE_COLOR_PRESET_HEX[3],
+	"chart-5": EXERCISE_COLOR_PRESET_HEX[4],
+};
+
+/** Обратная совместимость импортов (теперь это те же hex, не ключи CSS). */
+export const EXERCISE_COLOR_PRESET_KEYS = EXERCISE_COLOR_PRESET_HEX;
+
+export function isValidExerciseColorPreset(value: string): boolean {
+	return PRESET_HEX_SET.has(value) || value in LEGACY_CHART_TOKEN_TO_HEX;
+}
+
+/** Приводит сохранённое значение пресета к hex (в т.ч. легаси `chart-n`). */
+export function resolvePresetColorValueToHex(value: string): ExerciseColorPresetKey {
+	if (PRESET_HEX_SET.has(value)) return value as ExerciseColorPresetKey;
+	const mapped = LEGACY_CHART_TOKEN_TO_HEX[value];
+	if (mapped) return mapped;
+	return EXERCISE_COLOR_PRESET_HEX[0];
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -44,8 +79,8 @@ export const LEGACY_EXERCISE_TYPE_DEFAULTS: Record<
 	string,
 	{ name: string; iconKey: ExerciseIconPresetKey; colorValue: ExerciseColorPresetKey }
 > = {
-	"exercise.pushups": { name: "Отжимания", iconKey: "dumbbell", colorValue: "chart-1" },
-	"exercise.pullups": { name: "Подтягивания", iconKey: "chevrons-up", colorValue: "chart-2" },
+	"exercise.pushups": { name: "Отжимания", iconKey: "dumbbell", colorValue: EXERCISE_COLOR_PRESET_HEX[0] },
+	"exercise.pullups": { name: "Подтягивания", iconKey: "chevrons-up", colorValue: EXERCISE_COLOR_PRESET_HEX[1] },
 };
 
 export function isLegacyExerciseTypeId(id: string): boolean {
@@ -58,14 +93,43 @@ export function isValidCustomExerciseColor(hex: string): boolean {
 	return HEX_COLOR_RE.test(hex);
 }
 
+export type ExerciseTypeIconVisual = Pick<
+	PersistedExerciseType,
+	"iconDisplay" | "iconKey" | "iconEmojiText" | "nameInitialGlyph"
+>;
+
+export function lucideIconVisual(iconKey: string): ExerciseTypeIconVisual {
+	return {
+		iconDisplay: "lucide",
+		iconKey: isValidExerciseIconKey(iconKey) ? iconKey : "activity",
+		iconEmojiText: "",
+		nameInitialGlyph: "",
+	};
+}
+
+export function pickExerciseTypeIconVisual(
+	et: Pick<PersistedExerciseType, "iconDisplay" | "iconKey" | "iconEmojiText" | "nameInitialGlyph">,
+): ExerciseTypeIconVisual {
+	return {
+		iconDisplay: et.iconDisplay === "text" ? "text" : "lucide",
+		iconKey: et.iconKey,
+		iconEmojiText: et.iconEmojiText ?? "",
+		nameInitialGlyph: et.nameInitialGlyph ?? "",
+	};
+}
+
 export function createDefaultSeedExerciseType(now: string): PersistedExerciseType {
 	const id = crypto.randomUUID();
+	const name = "Отжимания";
 	return {
 		id,
-		name: "Отжимания",
+		name,
+		iconDisplay: "lucide",
 		iconKey: "dumbbell",
+		iconEmojiText: "",
+		nameInitialGlyph: firstGrapheme(name),
 		colorKind: "preset",
-		colorValue: "chart-1",
+		colorValue: EXERCISE_COLOR_PRESET_HEX[0],
 		archivedAt: null,
 		createdAt: now,
 		updatedAt: now,
@@ -73,13 +137,13 @@ export function createDefaultSeedExerciseType(now: string): PersistedExerciseTyp
 	};
 }
 
-/** CSS color для графиков и акцентов. */
+/** CSS color для графиков и акцентов (всегда конкретное значение, без var). */
 export function resolveExerciseTypeColor(et: Pick<PersistedExerciseType, "colorKind" | "colorValue">): string {
 	if (et.colorKind === "custom" && isValidCustomExerciseColor(et.colorValue)) {
 		return et.colorValue;
 	}
 	if (et.colorKind === "preset" && isValidExerciseColorPreset(et.colorValue)) {
-		return `var(--color-${et.colorValue})`;
+		return resolvePresetColorValueToHex(et.colorValue);
 	}
-	return "var(--color-chart-1)";
+	return EXERCISE_COLOR_PRESET_HEX[0];
 }

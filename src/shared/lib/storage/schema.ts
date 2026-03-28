@@ -23,13 +23,21 @@ export type PersistedMeta = {
 	schemaVersion: number;
 };
 
+/** Как показывать значок: пресет Lucide или текст (emoji / буква из БД). */
+export type ExerciseIconDisplay = "lucide" | "text";
+
 /** Каталог упражнений (UUID); имя и оформление задаёт пользователь. */
 export type PersistedExerciseType = {
 	id: string;
 	name: string;
+	iconDisplay: ExerciseIconDisplay;
 	iconKey: string;
+	/** Режим `text`: введённый emoji/текст; пусто — показываем `nameInitialGlyph`. */
+	iconEmojiText: string;
+	/** Сохранённая первая графема названия (обновляется при сохранении, если emoji пустой). */
+	nameInitialGlyph: string;
 	colorKind: "preset" | "custom";
-	/** preset: `chart-1`…`chart-5`; custom: `#rrggbb` */
+	/** preset: hex из `EXERCISE_COLOR_PRESET_HEX` (раньше допускались токены `chart-1`…); custom: `#rrggbb` */
 	colorValue: string;
 	archivedAt: string | null;
 	createdAt: string;

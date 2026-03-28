@@ -1,15 +1,17 @@
 import { create } from "zustand";
 import {
+	EXERCISE_COLOR_PRESET_HEX,
 	EXERCISE_TYPE_ROW_VERSION,
 	isValidCustomExerciseColor,
 	isValidExerciseColorPreset,
 	isValidExerciseIconKey,
+	resolvePresetColorValueToHex,
 } from "@/shared/config/exercise-type-presets";
 import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
 import { readStoredPreferredExerciseTypeRaw, writePreferredExerciseTypeId } from "@/shared/lib/preferred-exercise-type";
 import { getStorageAdapter } from "@/shared/lib/storage";
-import type { PersistedExerciseType } from "@/shared/lib/storage/schema";
+import type { ExerciseIconDisplay, PersistedExerciseType } from "@/shared/lib/storage/schema";
 import {
 	clearStoredTimeZone,
 	isValidTimeZoneId,
@@ -40,13 +42,19 @@ function resolvePreferredId(raw: string | null, byId: Record<string, PersistedEx
 
 export type NewExerciseTypeInput = {
 	name: string;
+	iconDisplay: ExerciseIconDisplay;
 	iconKey: string;
+	iconEmojiText: string;
+	nameInitialGlyph: string;
 	colorKind: "preset" | "custom";
 	colorValue: string;
 };
 
 export type UpdateExerciseTypeInput = Partial<
-	Pick<PersistedExerciseType, "name" | "iconKey" | "colorKind" | "colorValue">
+	Pick<
+		PersistedExerciseType,
+		"name" | "iconDisplay" | "iconKey" | "iconEmojiText" | "nameInitialGlyph" | "colorKind" | "colorValue"
+	>
 >;
 
 type PushlogState = {
@@ -150,22 +158,28 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 	addExerciseType: async (input: NewExerciseTypeInput) => {
 		const name = input.name.trim();
 		if (!name) return undefined;
+		const iconDisplay: ExerciseIconDisplay = input.iconDisplay === "text" ? "text" : "lucide";
 		const iconKey = isValidExerciseIconKey(input.iconKey) ? input.iconKey : "activity";
 		let colorKind = input.colorKind;
 		let colorValue = input.colorValue;
 		if (colorKind === "custom") {
 			if (!isValidCustomExerciseColor(colorValue)) {
 				colorKind = "preset";
-				colorValue = "chart-1";
+				colorValue = EXERCISE_COLOR_PRESET_HEX[0];
 			}
 		} else if (!isValidExerciseColorPreset(colorValue)) {
-			colorValue = "chart-1";
+			colorValue = EXERCISE_COLOR_PRESET_HEX[0];
+		} else {
+			colorValue = resolvePresetColorValueToHex(colorValue);
 		}
 		const now = new Date().toISOString();
 		const row: PersistedExerciseType = {
 			id: crypto.randomUUID(),
 			name,
+			iconDisplay,
 			iconKey,
+			iconEmojiText: iconDisplay === "text" ? input.iconEmojiText : "",
+			nameInitialGlyph: input.nameInitialGlyph,
 			colorKind,
 			colorValue,
 			archivedAt: null,
@@ -195,8 +209,11 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		const prev = get().exerciseTypesById[id];
 		if (!prev) return false;
 		const now = new Date().toISOString();
+		const iconDisplay: ExerciseIconDisplay = patch.iconDisplay !== undefined ? patch.iconDisplay : prev.iconDisplay;
 		let iconKey = patch.iconKey !== undefined ? patch.iconKey : prev.iconKey;
 		if (!isValidExerciseIconKey(iconKey)) iconKey = prev.iconKey;
+		const iconEmojiText = patch.iconEmojiText !== undefined ? patch.iconEmojiText : prev.iconEmojiText;
+		const nameInitialGlyph = patch.nameInitialGlyph !== undefined ? patch.nameInitialGlyph : prev.nameInitialGlyph;
 		let colorKind = patch.colorKind !== undefined ? patch.colorKind : prev.colorKind;
 		let colorValue = patch.colorValue !== undefined ? patch.colorValue : prev.colorValue;
 		if (colorKind === "custom") {
@@ -206,11 +223,16 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 			}
 		} else if (!isValidExerciseColorPreset(colorValue)) {
 			colorValue = prev.colorValue;
+		} else {
+			colorValue = resolvePresetColorValueToHex(colorValue);
 		}
 		const row: PersistedExerciseType = {
 			...prev,
 			name: patch.name !== undefined ? patch.name.trim() || prev.name : prev.name,
+			iconDisplay,
 			iconKey,
+			iconEmojiText: iconDisplay === "text" ? iconEmojiText : "",
+			nameInitialGlyph,
 			colorKind,
 			colorValue,
 			updatedAt: now,

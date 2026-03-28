@@ -14,7 +14,11 @@ import {
 } from "@/features/manage-exercises";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
-import { isExerciseTypeUuid, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import {
+	isExerciseTypeUuid,
+	pickExerciseTypeIconVisual,
+	resolveExerciseTypeColor,
+} from "@/shared/config/exercise-type-presets";
 
 export function ExercisePage() {
 	const loc = useLocation();
@@ -66,8 +70,7 @@ export function ExercisePage() {
 			return;
 		}
 		setHexError(null);
-		const { name, iconKey, colorKind, colorValue } = normalized.value;
-		const id = await addExerciseType({ name, iconKey, colorKind, colorValue });
+		const id = await addExerciseType(normalized.value);
 		if (id) navigate(`/exercises/${id}`, { replace: true });
 	}
 
@@ -122,7 +125,12 @@ export function ExercisePage() {
 		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-3">
-					<ExerciseTypeIcon iconKey={et.iconKey} className="size-9 shrink-0" style={{ color: accent }} aria-hidden />
+					<ExerciseTypeIcon
+						exerciseType={pickExerciseTypeIconVisual(et)}
+						className="size-9 shrink-0"
+						style={{ color: accent }}
+						aria-hidden
+					/>
 					<div className="min-w-0">
 						<h1 className="text-xl font-semibold">{et.name}</h1>
 					</div>

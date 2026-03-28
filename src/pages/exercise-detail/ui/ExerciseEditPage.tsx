@@ -42,8 +42,7 @@ export function ExerciseEditPage() {
 			return;
 		}
 		setHexError(null);
-		const { name, iconKey, colorKind, colorValue } = normalized.value;
-		if (validId) await updateExerciseType(validId, { name, iconKey, colorKind, colorValue });
+		if (validId) await updateExerciseType(validId, normalized.value);
 	}
 
 	if (!hydrated) {

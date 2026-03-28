@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
-import { resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import { HOME_SCREEN_NS } from "../translations";
 
 export function HomeExerciseList() {
@@ -39,7 +39,7 @@ export function HomeExerciseList() {
 							className="bg-card hover:bg-accent/50 flex items-center gap-3 rounded-lg border px-3 py-2.5 text-sm transition-colors"
 						>
 							<ExerciseTypeIcon
-								iconKey={et.iconKey}
+								exerciseType={pickExerciseTypeIconVisual(et)}
 								className="size-5 shrink-0"
 								style={{ color: accent }}
 								aria-hidden

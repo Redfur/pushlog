@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { usePushlogStore } from "@/entities/pushup";
 import { useAddSet } from "@/features/add-set";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
-import { resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import type { DayKey } from "@/shared/lib/day-key";
 import { cn } from "@/shared/lib/utils";
 import { MAIN_SCREEN_NS } from "../translations";
@@ -70,7 +70,12 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 							aria-label={et.name}
 							onClick={() => setPreferredExerciseTypeId(et.id)}
 						>
-							<ExerciseTypeIcon iconKey={et.iconKey} className="size-5" style={{ color: accent }} aria-hidden />
+							<ExerciseTypeIcon
+								exerciseType={pickExerciseTypeIconVisual(et)}
+								className="size-5"
+								style={{ color: accent }}
+								aria-hidden
+							/>
 						</Button>
 					);
 				})}
