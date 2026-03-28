@@ -10,6 +10,9 @@ export const homeScreenTranslations = {
 		todayRepsMixedHint: "Сумма по всем типам; разные упражнения нельзя складывать как одну метрику.",
 		exercisesSection: "Упражнения",
 		addExercise: "Добавить упражнение",
+		archivedSection: "В архиве",
+		archivedCount: "{{count}}",
+		unarchiveExercise: "Вернуть",
 		openDayCalendar: "День и календарь",
 	},
 } as const;
