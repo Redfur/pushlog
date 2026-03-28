@@ -34,6 +34,7 @@ description: Разработка Push log по спецификациям. Ис
 ## Стек
 
 - shadcn + Tailwind — UI. Компоненты в `src/components/ui/`, импорт: `@/components/ui/...`
+- **Формы и контролы:** не использовать в слайсах голые `<input>`, `<select>`, `<textarea>`, нативные checkbox/radio, если есть shadcn-аналог. Порядок: (1) `src/components/ui/`, (2) `npx shadcn@latest add <component>`, (3) только при отсутствии в реестре — свой компонент.
 
 ## Ключевые решения (из spec)
 

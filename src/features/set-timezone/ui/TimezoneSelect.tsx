@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePushlogStore } from "@/entities/pushup";
 import { getDefaultTimeZone } from "@/shared/lib/day-key";
 import { readStoredTimeZone, TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
@@ -33,23 +34,21 @@ export function TimezoneSelect() {
 				</label>
 				<p className="text-muted-foreground mt-0.5 text-[11px] leading-snug">{t("hint")}</p>
 			</div>
-			<select
-				id="tz-select"
-				className="border-input bg-background ring-offset-background focus-visible:ring-ring max-w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-				value={selectValue}
-				onChange={(e) => {
-					setTimeZone(e.target.value);
-				}}
-			>
-				<option value={TIMEZONE_AUTO_SELECT_VALUE}>
-					{t("auto")} ({getDefaultTimeZone()})
-				</option>
-				{zones.map((z) => (
-					<option key={z} value={z}>
-						{z}
-					</option>
-				))}
-			</select>
+			<Select value={selectValue} onValueChange={setTimeZone}>
+				<SelectTrigger id="tz-select" className="max-w-full min-w-0 w-full">
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent className="max-h-[min(50vh,20rem)]">
+					<SelectItem value={TIMEZONE_AUTO_SELECT_VALUE}>
+						{t("auto")} ({getDefaultTimeZone()})
+					</SelectItem>
+					{zones.map((z) => (
+						<SelectItem key={z} value={z}>
+							{z}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 		</div>
 	);
 }

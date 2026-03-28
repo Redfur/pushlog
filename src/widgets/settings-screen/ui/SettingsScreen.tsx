@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePushlogStore } from "@/entities/pushup";
 import { GoalSettingsCard } from "@/features/set-daily-goal";
 import { TimezoneSelect } from "@/features/set-timezone";
@@ -43,21 +44,23 @@ function ThemePreferenceSelect({ labelId }: { labelId: string }) {
 	}, []);
 
 	return (
-		<select
-			id="theme-pref-select"
-			aria-labelledby={labelId}
-			className="border-input bg-background ring-offset-background focus-visible:ring-ring max-w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+		<Select
 			value={preference}
-			onChange={(e) => {
-				const v = e.target.value as ThemePreference;
+			onValueChange={(v) => {
+				if (v !== "system" && v !== "light" && v !== "dark") return;
 				setThemePreference(v);
 				setPreference(v);
 			}}
 		>
-			<option value="system">{t("themeSystem")}</option>
-			<option value="light">{t("themeLight")}</option>
-			<option value="dark">{t("themeDark")}</option>
-		</select>
+			<SelectTrigger id="theme-pref-select" aria-labelledby={labelId} className="max-w-full min-w-0 w-full">
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="system">{t("themeSystem")}</SelectItem>
+				<SelectItem value="light">{t("themeLight")}</SelectItem>
+				<SelectItem value="dark">{t("themeDark")}</SelectItem>
+			</SelectContent>
+		</Select>
 	);
 }
 
@@ -107,15 +110,18 @@ export function SettingsScreen() {
 					<CardDescription className="text-xs">{t("languageHint")}</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<select
-						id="language-select"
-						aria-labelledby="settings-lang-heading"
-						disabled
-						className="border-input bg-muted text-muted-foreground max-w-full cursor-not-allowed rounded-md border px-3 py-2 text-sm"
-						value="ru"
-					>
-						<option value="ru">{t("languageCurrent")}</option>
-					</select>
+					<Select disabled value="ru">
+						<SelectTrigger
+							id="language-select"
+							aria-labelledby="settings-lang-heading"
+							className="max-w-full min-w-0 w-full"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="ru">{t("languageCurrent")}</SelectItem>
+						</SelectContent>
+					</Select>
 				</CardContent>
 			</Card>
 

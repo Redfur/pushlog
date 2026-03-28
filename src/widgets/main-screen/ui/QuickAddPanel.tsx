@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ADD_SET_NS } from "@/features/add-set";
 import { QUICK_ADD_PRESETS } from "@/shared/config/pushlog";
 import { cn } from "@/shared/lib/utils";
@@ -74,7 +75,7 @@ export function QuickAddPanel({ canLog, addReps, repeatLast }: Props) {
 					</div>
 				))}
 				<form className="inline-flex" onSubmit={onSubmitCustom}>
-					<input
+					<Input
 						aria-label={t("quickAddInputAria")}
 						className={cn(
 							buttonVariants({ variant: "outline", size: "lg" }),

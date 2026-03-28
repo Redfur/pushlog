@@ -17,6 +17,16 @@ app/ → pages/ → widgets/ → features/ → entities/ → shared
 
 `npx shadcn@latest add <component>`. Компоненты в `src/components/ui/`. Импорт: `@/components/ui/...`
 
+### Поля ввода и выбора (не нативный HTML в фичах/виджетах/страницах)
+
+В UI-слое приложения **не** использовать голые `<input>`, `<select>`, `<textarea>`, нативные checkbox/radio и т.п., если для этого есть компонент shadcn.
+
+1. Сначала смотреть `src/components/ui/` — подключить готовое (`Input`, `Select`, `Textarea`, `Checkbox`, `Switch` и т.д.).
+2. Если файла нет — установить: `npx shadcn@latest add <имя>` (как в документации shadcn для нужного паттерна).
+3. **Только если** в реестре shadcn нет подходящего компонента — писать свой (обычно в `src/components/ui/` или осмысленно в слайсе), согласовав стили с остальным UI.
+
+Исключение: сами файлы в `src/components/ui/` — это обёртки над нативными элементами; там нативный тег допустим.
+
 ## Где размещать код
 
 - **entities/** — document, line (типы, модель, базовые UI)

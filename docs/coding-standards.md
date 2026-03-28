@@ -88,6 +88,7 @@ entities/some/
 - Добавление: `npx shadcn@latest add <component>`
 - Компоненты в `src/components/ui/` (настроено в `components.json`)
 - Импорт: `@/components/ui/button`, `@/components/ui/input` и т.д.
+- В фичах/виджетах/страницах не использовать голые `<input>`, `<select>`, `<textarea>` и нативные checkbox/radio, если есть компонент в `src/components/ui/`; если нет — добавить через `npx shadcn@latest add …`; свой компонент — только если в реестре shadcn нет аналога
 - Без inline-стилей, кроме динамических значений
 - Глобальные стили в `app/styles/`
 
