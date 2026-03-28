@@ -66,12 +66,11 @@ function ThemePreferenceSelect({ labelId }: { labelId: string }) {
 
 export function SettingsScreen() {
 	const { t } = useTranslation(SETTINGS_SCREEN_NS);
-	const hydrate = usePushlogStore((s) => s.hydrate);
 	const setTimeZone = usePushlogStore((s) => s.setTimeZone);
 
 	const handleClearIndexedDb = async () => {
 		await wipePushlogIndexedDatabase();
-		await hydrate();
+		window.location.reload();
 	};
 
 	const handleClearLocalPreferences = () => {
@@ -83,7 +82,6 @@ export function SettingsScreen() {
 		await wipePushlogIndexedDatabase();
 		clearClientStoragePreferences();
 		setTimeZone(TIMEZONE_AUTO_SELECT_VALUE);
-		await hydrate();
 		window.location.reload();
 	};
 
