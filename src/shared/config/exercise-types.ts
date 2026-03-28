@@ -11,10 +11,8 @@ export {
 	type ExerciseColorPresetKey,
 	type ExerciseIconPresetKey,
 	isExerciseTypeUuid,
-	isLegacyExerciseTypeId,
 	isValidCustomExerciseColor,
 	isValidExerciseColorPreset,
 	isValidExerciseIconKey,
-	LEGACY_EXERCISE_TYPE_DEFAULTS,
 	resolveExerciseTypeColor,
 } from "./exercise-type-presets";

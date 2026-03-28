@@ -37,7 +37,7 @@ export type PersistedExerciseType = {
 	/** Сохранённая первая графема названия (обновляется при сохранении, если emoji пустой). */
 	nameInitialGlyph: string;
 	colorKind: "preset" | "custom";
-	/** preset: hex из `EXERCISE_COLOR_PRESET_HEX` (раньше допускались токены `chart-1`…); custom: `#rrggbb` */
+	/** preset: hex из `EXERCISE_COLOR_PRESET_HEX`; custom: `#rrggbb` */
 	colorValue: string;
 	archivedAt: string | null;
 	createdAt: string;

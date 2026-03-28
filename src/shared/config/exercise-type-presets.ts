@@ -44,27 +44,15 @@ export type ExerciseColorPresetKey = (typeof EXERCISE_COLOR_PRESET_HEX)[number];
 
 const PRESET_HEX_SET = new Set<string>(EXERCISE_COLOR_PRESET_HEX);
 
-/** Легаси: в БД могли лежать токены `chart-1`…`chart-5` под var(--color-*). */
-const LEGACY_CHART_TOKEN_TO_HEX: Record<string, ExerciseColorPresetKey> = {
-	"chart-1": EXERCISE_COLOR_PRESET_HEX[0],
-	"chart-2": EXERCISE_COLOR_PRESET_HEX[1],
-	"chart-3": EXERCISE_COLOR_PRESET_HEX[2],
-	"chart-4": EXERCISE_COLOR_PRESET_HEX[3],
-	"chart-5": EXERCISE_COLOR_PRESET_HEX[4],
-};
-
 /** Обратная совместимость импортов (теперь это те же hex, не ключи CSS). */
 export const EXERCISE_COLOR_PRESET_KEYS = EXERCISE_COLOR_PRESET_HEX;
 
 export function isValidExerciseColorPreset(value: string): boolean {
-	return PRESET_HEX_SET.has(value) || value in LEGACY_CHART_TOKEN_TO_HEX;
+	return PRESET_HEX_SET.has(value);
 }
 
-/** Приводит сохранённое значение пресета к hex (в т.ч. легаси `chart-n`). */
 export function resolvePresetColorValueToHex(value: string): ExerciseColorPresetKey {
 	if (PRESET_HEX_SET.has(value)) return value as ExerciseColorPresetKey;
-	const mapped = LEGACY_CHART_TOKEN_TO_HEX[value];
-	if (mapped) return mapped;
 	return EXERCISE_COLOR_PRESET_HEX[0];
 }
 
@@ -72,19 +60,6 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 export function isExerciseTypeUuid(id: string): boolean {
 	return UUID_RE.test(id);
-}
-
-/** Легаси `exerciseTypeId` из версии до UUID — дефолты при миграции. */
-export const LEGACY_EXERCISE_TYPE_DEFAULTS: Record<
-	string,
-	{ name: string; iconKey: ExerciseIconPresetKey; colorValue: ExerciseColorPresetKey }
-> = {
-	"exercise.pushups": { name: "Отжимания", iconKey: "dumbbell", colorValue: EXERCISE_COLOR_PRESET_HEX[0] },
-	"exercise.pullups": { name: "Подтягивания", iconKey: "chevrons-up", colorValue: EXERCISE_COLOR_PRESET_HEX[1] },
-};
-
-export function isLegacyExerciseTypeId(id: string): boolean {
-	return id in LEGACY_EXERCISE_TYPE_DEFAULTS;
 }
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;

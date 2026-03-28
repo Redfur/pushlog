@@ -1,6 +1,6 @@
 import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
 
-/** Сырое значение из localStorage (UUID или устаревший id до миграции). */
+/** Сырое значение предпочитаемого типа упражнения из localStorage (UUID). */
 export function readStoredPreferredExerciseTypeRaw(): string | null {
 	if (typeof localStorage === "undefined") return null;
 	try {

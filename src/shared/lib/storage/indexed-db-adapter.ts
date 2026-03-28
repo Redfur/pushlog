@@ -1,13 +1,12 @@
 import { type DBSchema, deleteDB, type IDBPDatabase, openDB } from "idb";
+import { createDefaultSeedExerciseType } from "@/shared/config/exercise-type-presets";
 import type { StorageAdapter } from "./contract";
-import { type MetaRowGoals, metaRowWithoutLegacyGoal, normalizeGoalsFromMeta } from "./meta-goals";
-import { migrateExerciseCatalogV2 } from "./migrate-exercise-catalog-v2";
-import { migrateExerciseIconDisplayV3 } from "./migrate-exercise-icon-display-v3";
+import { buildMetaRow, goalsFromMeta, type MetaRowGoals } from "./meta-goals";
 import { normalizeExerciseTypeRow, type PersistedExerciseTypeLoose } from "./normalize-exercise-type-row";
 import type { PersistedExerciseType, PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
 
 const DB_NAME = "pushlog";
-const DB_VERSION = 3;
+const DB_VERSION = 1;
 const CURRENT_SCHEMA_VERSION = 1;
 
 interface PushlogDBSchema extends DBSchema {
@@ -42,11 +41,12 @@ function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 				if (!database.objectStoreNames.contains("exerciseTypes")) {
 					database.createObjectStore("exerciseTypes", { keyPath: "id" });
 				}
-				if (oldVersion < 2 && transaction) {
-					await migrateExerciseCatalogV2(transaction);
-				}
-				if (oldVersion < 3 && transaction) {
-					await migrateExerciseIconDisplayV3(transaction);
+				if (oldVersion === 0 && transaction) {
+					const etStore = transaction.objectStore("exerciseTypes");
+					const existing = await etStore.getAll();
+					if (existing.length === 0) {
+						await etStore.put(createDefaultSeedExerciseType(new Date().toISOString()));
+					}
 				}
 			},
 		});
@@ -84,28 +84,23 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 		async getGoals() {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			const goals = normalizeGoalsFromMeta(meta);
-			const hadLegacyOnly = Boolean(meta.goal) && !meta.goalsByExerciseTypeId;
-			if (hadLegacyOnly && Object.keys(goals).length > 0) {
-				await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
-			}
-			return goals;
+			return goalsFromMeta(meta);
 		},
 
 		async putGoalForExercise(goal: PersistedGoal) {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			const goals = normalizeGoalsFromMeta(meta);
+			const goals = goalsFromMeta(meta);
 			goals[goal.exerciseTypeId] = goal;
-			await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
+			await db.put("meta", buildMetaRow(meta, goals));
 		},
 
 		async clearGoalForExercise(exerciseTypeId: string) {
 			const db = await getDb();
 			const meta = await readMetaRow(db);
-			const goals = normalizeGoalsFromMeta(meta);
+			const goals = goalsFromMeta(meta);
 			delete goals[exerciseTypeId];
-			await db.put("meta", metaRowWithoutLegacyGoal(meta, goals));
+			await db.put("meta", buildMetaRow(meta, goals));
 		},
 
 		async getAllExerciseTypes() {
@@ -134,8 +129,8 @@ export function createIndexedDbStorageAdapter(): StorageAdapter {
 		async setMeta(meta: PersistedMeta) {
 			const db = await getDb();
 			const prev = await readMetaRow(db);
-			const goals = normalizeGoalsFromMeta(prev);
-			await db.put("meta", metaRowWithoutLegacyGoal({ ...prev, schemaVersion: meta.schemaVersion }, goals));
+			const goals = goalsFromMeta(prev);
+			await db.put("meta", buildMetaRow({ ...prev, schemaVersion: meta.schemaVersion }, goals));
 		},
 	};
 }

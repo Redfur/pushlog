@@ -1,7 +1,7 @@
 import { firstGrapheme } from "@/shared/lib/first-grapheme";
 import type { ExerciseIconDisplay, PersistedExerciseType } from "./schema";
 
-/** Запись из IDB до появления полей iconDisplay / emoji (миграция и чтение). */
+/** Частичная запись из IDB — поля иконки дополняются при чтении. */
 export type PersistedExerciseTypeLoose = Omit<
 	PersistedExerciseType,
 	"iconDisplay" | "iconEmojiText" | "nameInitialGlyph"
