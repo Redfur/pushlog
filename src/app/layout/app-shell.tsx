@@ -143,13 +143,18 @@ export function AppShell({ children }: Props) {
 				</nav>
 			</aside>
 
-			<main className={cn("flex flex-1 flex-col pb-20 lg:pb-8 lg:pl-64", lastError && "pt-10")}>
+			<main
+				className={cn(
+					"flex flex-1 flex-col pb-20 lg:pb-8 lg:pl-64 [@media(display-mode:standalone)_and_(max-width:1023px)]:pb-[calc(5rem+env(safe-area-inset-bottom,0px))]",
+					lastError && "pt-10",
+				)}
+			>
 				<div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 sm:px-6 lg:max-w-4xl lg:py-2">
 					{children}
 				</div>
 			</main>
 
-			<nav className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur lg:hidden">
+			<nav className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur lg:hidden [@media(display-mode:standalone)]:pb-[env(safe-area-inset-bottom,0px)]">
 				<div className="mx-auto flex max-w-2xl justify-between gap-0.5 px-1 py-2 sm:gap-1">
 					<HomeNavLink variant="bottom" />
 					<DayNavLink variant="bottom" />
