@@ -2,9 +2,10 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
+import { filterSetsByDayKey, totalTonnageForDayKey, usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { formatTonnageWithKgUnit } from "@/shared/lib/format-weight-kg";
 import { HOME_SCREEN_NS } from "../translations";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 };
 
 export function HomeTodayStatsCards({ todayKey }: Props) {
-	const { t } = useTranslation(HOME_SCREEN_NS);
+	const { t, i18n } = useTranslation(HOME_SCREEN_NS);
 	const sets = usePushlogStore((s) => s.sets);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 
@@ -61,9 +62,15 @@ export function HomeTodayStatsCards({ todayKey }: Props) {
 				{activeSorted.map((et) => {
 					const agg = repsSetsByTypeId.get(et.id) ?? { reps: 0, sets: 0 };
 					const accent = resolveExerciseTypeColor(et);
+					const tonnageKg = et.trackWeightInSets
+						? totalTonnageForDayKey(
+								daySets.filter((s) => s.exerciseTypeId === et.id),
+								todayKey,
+							)
+						: null;
 					return (
 						<Link key={et.id} to={`/exercises/${et.id}`} className="block h-full min-h-0">
-							<Card className="hover:bg-accent/40 h-full transition-colors">
+							<Card className="hover:bg-accent/40 flex h-full flex-col transition-colors">
 								<CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
 									<ExerciseTypeIcon
 										exerciseType={pickExerciseTypeIconVisual(et)}
@@ -71,16 +78,34 @@ export function HomeTodayStatsCards({ todayKey }: Props) {
 										style={{ color: accent }}
 										aria-hidden
 									/>
-									<CardTitle className="truncate text-sm font-medium">{et.name}</CardTitle>
+									<CardTitle className="truncate text-sm font-medium">
+										{et.name}
+										<span className="ml-2 text-muted-foreground text-xs font-normal">{t("cardLabelToday")}</span>
+									</CardTitle>
 								</CardHeader>
-								<CardContent className="space-y-2">
-									<div>
-										<p className="text-muted-foreground text-xs">{t("cardSetsToday")}</p>
-										<p className="text-xl font-semibold tabular-nums">{agg.sets}</p>
+								<CardContent className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-x-4">
+									<div className="min-w-0">
+										<p className="text-muted-foreground text-xs leading-tight">{t("cardSets")}</p>
+										<p className="text-2xl font-semibold tabular-nums">{agg.sets}</p>
 									</div>
-									<div>
-										<p className="text-muted-foreground text-xs">{t("cardRepsToday")}</p>
-										<p className="text-xl font-semibold tabular-nums">{agg.reps}</p>
+									<div className="min-w-0">
+										<p className="text-muted-foreground text-xs leading-tight">{t("cardReps")}</p>
+										<p className="text-2xl font-semibold tabular-nums">{agg.reps}</p>
+									</div>
+									<div className="min-w-0">
+										<p className="text-muted-foreground text-xs leading-tight">{t("cardTonnage")}</p>
+										<p className="text-2xl font-semibold tabular-nums">
+											{tonnageKg != null ? (
+												formatTonnageWithKgUnit(tonnageKg, i18n.language)
+											) : (
+												<>
+													<span className="sr-only">{t("cardTonnageDashAria")}</span>
+													<span className="text-muted-foreground font-normal" aria-hidden>
+														—
+													</span>
+												</>
+											)}
+										</p>
 									</div>
 								</CardContent>
 							</Card>

@@ -83,6 +83,7 @@ export function ExerciseEditPage() {
 					t={t}
 					nameInputId="ex-edit-name"
 					iconSelectId="ex-edit-icon"
+					trackWeightSwitchId="ex-edit-track-weight"
 				/>
 				<Button type="button" className="w-fit" onClick={() => void handleSave()}>
 					{t("save")}

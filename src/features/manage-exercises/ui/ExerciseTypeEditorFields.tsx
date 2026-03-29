@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import {
 	EXERCISE_COLOR_PRESET_HEX,
@@ -22,6 +23,7 @@ type Props = {
 	t: (key: string) => string;
 	nameInputId?: string;
 	iconSelectId?: string;
+	trackWeightSwitchId?: string;
 };
 
 export function ExerciseTypeEditorFields({
@@ -32,6 +34,7 @@ export function ExerciseTypeEditorFields({
 	t,
 	nameInputId = "ex-name",
 	iconSelectId = "ex-icon",
+	trackWeightSwitchId = "ex-track-weight",
 }: Props) {
 	const colorPickerValue =
 		draft.colorKind === "custom" && isValidCustomExerciseColor(draft.colorValue) ? draft.colorValue : "#6366f1";
@@ -111,6 +114,22 @@ export function ExerciseTypeEditorFields({
 			<div className="flex items-center gap-3">
 				<span className="text-muted-foreground text-sm">{t("iconPreview")}</span>
 				<ExerciseTypeIcon exerciseType={previewVisual} className="size-9" style={{ color: previewColor }} aria-hidden />
+			</div>
+
+			<div className="flex flex-col gap-2 rounded-lg border border-border/60 p-3">
+				<div className="flex items-start justify-between gap-3">
+					<div className="min-w-0 space-y-1">
+						<Label htmlFor={trackWeightSwitchId} className="text-sm font-medium">
+							{t("trackWeightLabel")}
+						</Label>
+						<p className="text-muted-foreground text-xs">{t("trackWeightHint")}</p>
+					</div>
+					<Switch
+						id={trackWeightSwitchId}
+						checked={draft.trackWeightInSets}
+						onCheckedChange={(v) => onDraftChange((d) => ({ ...d, trackWeightInSets: v }))}
+					/>
+				</div>
 			</div>
 
 			<div className="flex flex-col gap-2">

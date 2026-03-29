@@ -4,9 +4,9 @@ import type { ExerciseIconDisplay, PersistedExerciseType } from "./schema";
 /** Частичная запись из IDB — поля иконки дополняются при чтении. */
 export type PersistedExerciseTypeLoose = Omit<
 	PersistedExerciseType,
-	"iconDisplay" | "iconEmojiText" | "nameInitialGlyph"
+	"iconDisplay" | "iconEmojiText" | "nameInitialGlyph" | "trackWeightInSets"
 > &
-	Partial<Pick<PersistedExerciseType, "iconDisplay" | "iconEmojiText" | "nameInitialGlyph">>;
+	Partial<Pick<PersistedExerciseType, "iconDisplay" | "iconEmojiText" | "nameInitialGlyph" | "trackWeightInSets">>;
 
 export function normalizeExerciseTypeRow(row: PersistedExerciseTypeLoose): PersistedExerciseType {
 	const iconDisplay: ExerciseIconDisplay = row.iconDisplay === "text" ? "text" : "lucide";
@@ -27,5 +27,6 @@ export function normalizeExerciseTypeRow(row: PersistedExerciseTypeLoose): Persi
 		iconDisplay,
 		iconEmojiText,
 		nameInitialGlyph,
+		trackWeightInSets: row.trackWeightInSets ?? false,
 	};
 }

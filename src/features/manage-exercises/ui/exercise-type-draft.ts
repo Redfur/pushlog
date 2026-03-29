@@ -15,16 +15,18 @@ export type ExerciseTypeDraft = {
 	iconEmojiText: string;
 	colorKind: "preset" | "custom";
 	colorValue: string;
+	trackWeightInSets: boolean;
 };
 
 export function defaultExerciseTypeDraft(): ExerciseTypeDraft {
 	return {
 		name: "",
 		iconDisplay: "lucide",
-		iconKey: "dumbbell",
+		iconKey: "chevrons-up",
 		iconEmojiText: "",
 		colorKind: "preset",
 		colorValue: EXERCISE_COLOR_PRESET_HEX[0],
+		trackWeightInSets: false,
 	};
 }
 
@@ -39,6 +41,7 @@ export function exerciseTypeDraftFromPersisted(et: PersistedExerciseType): Exerc
 			et.colorKind === "preset" && isValidExerciseColorPreset(et.colorValue)
 				? resolvePresetColorValueToHex(et.colorValue)
 				: et.colorValue,
+		trackWeightInSets: et.trackWeightInSets,
 	};
 }
 
@@ -50,6 +53,7 @@ type NormalizedExerciseTypeSave = {
 	nameInitialGlyph: string;
 	colorKind: "preset" | "custom";
 	colorValue: string;
+	trackWeightInSets: boolean;
 };
 
 /** Превью значка в форме до сохранения (буква из названия при пустом emoji). */
@@ -110,6 +114,7 @@ export function normalizeExerciseTypeDraft(
 			nameInitialGlyph,
 			colorKind,
 			colorValue,
+			trackWeightInSets: draft.trackWeightInSets,
 		},
 	};
 }

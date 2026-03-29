@@ -1,7 +1,8 @@
 import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
 import { initTheme } from "@/shared/lib/theme";
 
-const CLIENT_STORAGE_CLEARED_EVENT = "pushlog-client-storage-cleared";
+/** Диспатчится после `clearClientStoragePreferences`; UI может сбросить локальные черновики. */
+export const PUSHLOG_CLIENT_STORAGE_CLEARED_EVENT = "pushlog-client-storage-cleared";
 
 /** Удаляет известные ключи `localStorage` (тема, часовой пояс, предпочтения приложения) и переинициализирует тему. */
 export function clearClientStoragePreferences(): void {
@@ -15,6 +16,6 @@ export function clearClientStoragePreferences(): void {
 	}
 	initTheme();
 	if (typeof window !== "undefined") {
-		window.dispatchEvent(new CustomEvent(CLIENT_STORAGE_CLEARED_EVENT));
+		window.dispatchEvent(new CustomEvent(PUSHLOG_CLIENT_STORAGE_CLEARED_EVENT));
 	}
 }

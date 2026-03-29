@@ -5,7 +5,14 @@ import "@/widgets/stats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { computeStatsForExerciseType, usePushlogStore } from "@/entities/pushup";
+import {
+	computeStatsForExerciseType,
+	lastNDaysInclusive,
+	maxWeightAllTime,
+	totalTonnageForDayKey,
+	totalTonnageForDayKeys,
+	usePushlogStore,
+} from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import {
@@ -13,13 +20,18 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
+import { bcp47FromI18nLang } from "@/shared/lib/format-day";
+import { formatTonnageWithKgUnit, formatWeightKgDisplay } from "@/shared/lib/format-weight-kg";
 import { STATS_NS } from "@/widgets/stats/translations";
 import { StatsHeatmap } from "@/widgets/stats/ui/StatsHeatmap";
+import { StatsTonnageTrendCharts } from "@/widgets/stats/ui/StatsTonnageTrendCharts";
 import { StatsTrendCharts } from "@/widgets/stats/ui/StatsTrendCharts";
+import { StatsWeightTrendCharts } from "@/widgets/stats/ui/StatsWeightTrendCharts";
 
 export function StatsExercisePage() {
 	const { exerciseId } = useParams<{ exerciseId: string }>();
-	const { t } = useTranslation(STATS_NS);
+	const { t, i18n } = useTranslation(STATS_NS);
+	const locale = bcp47FromI18nLang(i18n.language);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
@@ -34,6 +46,18 @@ export function StatsExercisePage() {
 	const stats = useMemo(
 		() => (validId ? computeStatsForExerciseType(sets, validId, todayKey, timeZone) : null),
 		[sets, validId, todayKey, timeZone],
+	);
+
+	const maxWeight = useMemo(() => maxWeightAllTime(setsForType), [setsForType]);
+
+	const tonnageToday = useMemo(() => totalTonnageForDayKey(setsForType, todayKey), [setsForType, todayKey]);
+	const tonnage7d = useMemo(
+		() => totalTonnageForDayKeys(setsForType, lastNDaysInclusive(todayKey, 7, timeZone)),
+		[setsForType, todayKey, timeZone],
+	);
+	const tonnage30d = useMemo(
+		() => totalTonnageForDayKeys(setsForType, lastNDaysInclusive(todayKey, 30, timeZone)),
+		[setsForType, todayKey, timeZone],
 	);
 
 	const accent = et ? resolveExerciseTypeColor(et) : "var(--color-primary)";
@@ -107,7 +131,48 @@ export function StatsExercisePage() {
 						<p className="text-2xl font-semibold tabular-nums">{stats.activeDaysCount}</p>
 					</CardContent>
 				</Card>
+				{et.trackWeightInSets ? (
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("exerciseDetailMaxWeight")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">
+								{maxWeight != null ? formatWeightKgDisplay(maxWeight) : "—"}
+							</p>
+						</CardContent>
+					</Card>
+				) : null}
 			</div>
+
+			{et.trackWeightInSets ? (
+				<div className="grid gap-3 sm:grid-cols-3">
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("exerciseTonnageToday")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnageToday, locale)}</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("exerciseTonnage7d")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnage7d, locale)}</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("exerciseTonnage30d")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnage30d, locale)}</p>
+						</CardContent>
+					</Card>
+				</div>
+			) : null}
 
 			<StatsTrendCharts
 				sets={setsForType}
@@ -116,6 +181,12 @@ export function StatsExercisePage() {
 				barFill={accent}
 				lineStroke="var(--color-secondary)"
 			/>
+			{et.trackWeightInSets ? (
+				<StatsWeightTrendCharts sets={setsForType} todayKey={todayKey} timeZone={timeZone} barFill={accent} />
+			) : null}
+			{et.trackWeightInSets ? (
+				<StatsTonnageTrendCharts sets={setsForType} todayKey={todayKey} timeZone={timeZone} barFill={accent} />
+			) : null}
 			<StatsHeatmap sets={sets} todayKey={todayKey} timeZone={timeZone} exerciseTypeIdFilter={validId} />
 		</div>
 	);

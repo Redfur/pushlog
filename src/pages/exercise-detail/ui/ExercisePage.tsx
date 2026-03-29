@@ -4,7 +4,13 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { computeStatsForExerciseType, filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
+import {
+	computeStatsForExerciseType,
+	filterSetsByDayKey,
+	totalTonnageForDayKey,
+	totalTonnageForExerciseType,
+	usePushlogStore,
+} from "@/entities/pushup";
 import {
 	defaultExerciseTypeDraft,
 	type ExerciseTypeDraft,
@@ -19,13 +25,15 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
+import { formatTonnageMassDisplay } from "@/shared/lib/format-weight-kg";
+import { cn } from "@/shared/lib/utils";
 
 export function ExercisePage() {
 	const loc = useLocation();
 	const { exerciseId: paramId } = useParams<{ exerciseId?: string }>();
 	const rawParam = paramId ?? (loc.pathname === "/exercises/new" ? "new" : undefined);
 	const navigate = useNavigate();
-	const { t } = useTranslation(MANAGE_EXERCISES_NS);
+	const { t, i18n } = useTranslation(MANAGE_EXERCISES_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
@@ -62,6 +70,14 @@ export function ExercisePage() {
 
 	const todayReps = useMemo(() => todaySetsForType.reduce((a, s) => a + s.reps, 0), [todaySetsForType]);
 	const todaySetCount = todaySetsForType.length;
+	const todayTonnage = useMemo(() => totalTonnageForDayKey(todaySetsForType, todayKey), [todaySetsForType, todayKey]);
+
+	const allTimeTonnage = useMemo(() => {
+		if (!validId) return null;
+		const typeRow = exerciseTypesById[validId];
+		if (!typeRow?.trackWeightInSets) return null;
+		return totalTonnageForExerciseType(sets, validId);
+	}, [sets, validId, exerciseTypesById]);
 
 	async function handleSaveNew() {
 		const normalized = normalizeExerciseTypeDraft(draft, t("hexInvalid"));
@@ -95,6 +111,7 @@ export function ExercisePage() {
 					t={t}
 					nameInputId="ex-new-name"
 					iconSelectId="ex-new-icon"
+					trackWeightSwitchId="ex-new-track-weight"
 				/>
 				<div className="flex flex-wrap gap-2">
 					<Button type="button" variant="outline" asChild>
@@ -149,7 +166,9 @@ export function ExercisePage() {
 				<div className="flex flex-col gap-4">
 					<div>
 						<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("viewTodayTitle")}</h2>
-						<div className="grid gap-3 sm:grid-cols-2">
+						<div
+							className={cn("grid gap-3", et.trackWeightInSets ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2")}
+						>
 							<Card>
 								<CardHeader className="pb-2">
 									<CardTitle className="text-sm font-medium">{t("viewCardSets")}</CardTitle>
@@ -166,6 +185,18 @@ export function ExercisePage() {
 									<p className="text-2xl font-semibold tabular-nums">{todayReps}</p>
 								</CardContent>
 							</Card>
+							{et.trackWeightInSets ? (
+								<Card className="sm:col-span-2 lg:col-span-1">
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm font-medium">{t("viewCardTonnageToday")}</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<p className="text-2xl font-semibold tabular-nums">
+											{formatTonnageMassDisplay(todayTonnage, i18n.language)}
+										</p>
+									</CardContent>
+								</Card>
+							) : null}
 						</div>
 					</div>
 					<div>
@@ -187,7 +218,19 @@ export function ExercisePage() {
 									<p className="text-2xl font-semibold tabular-nums">{statsAll.totalSetsAllTime}</p>
 								</CardContent>
 							</Card>
-							<Card className="sm:col-span-2">
+							{et.trackWeightInSets ? (
+								<Card>
+									<CardHeader className="pb-2">
+										<CardTitle className="text-sm font-medium">{t("viewCardTonnageAllTime")}</CardTitle>
+									</CardHeader>
+									<CardContent>
+										<p className="text-2xl font-semibold tabular-nums">
+											{formatTonnageMassDisplay(allTimeTonnage ?? 0, i18n.language)}
+										</p>
+									</CardContent>
+								</Card>
+							) : null}
+							<Card className={et.trackWeightInSets ? undefined : "sm:col-span-2"}>
 								<CardHeader className="pb-2">
 									<CardTitle className="text-sm font-medium">{t("viewCardActiveDays")}</CardTitle>
 								</CardHeader>

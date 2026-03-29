@@ -12,4 +12,11 @@ export {
 	totalRepsForDayAndExercise,
 } from "./model/day-sets";
 export { usePushlogStore } from "./model/pushlog-store";
+export {
+	buildDailyTonnageSeries,
+	totalTonnageForDayKey,
+	totalTonnageForDayKeys,
+	totalTonnageForExerciseType,
+} from "./model/tonnage";
 export type { PushlogSet } from "./model/types";
+export { buildDailyMaxWeightSeries, maxWeightAllTime } from "./model/weight-stats";

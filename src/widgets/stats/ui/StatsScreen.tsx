@@ -3,13 +3,21 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { computeStats, usePushlogStore } from "@/entities/pushup";
+import {
+	computeStats,
+	lastNDaysInclusive,
+	totalTonnageForDayKey,
+	totalTonnageForDayKeys,
+	usePushlogStore,
+} from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
+import { formatTonnageWithKgUnit } from "@/shared/lib/format-weight-kg";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
+import { StatsTonnageTrendCharts } from "./StatsTonnageTrendCharts";
 import { StatsTrendCharts } from "./StatsTrendCharts";
 
 export function StatsScreen() {
@@ -22,6 +30,16 @@ export function StatsScreen() {
 	const todayKey = useTodayDayKey(timeZone);
 
 	const statsAll = useMemo(() => computeStats(sets, todayKey, timeZone), [sets, timeZone, todayKey]);
+
+	const tonnageToday = useMemo(() => totalTonnageForDayKey(sets, todayKey), [sets, todayKey]);
+	const tonnage7d = useMemo(
+		() => totalTonnageForDayKeys(sets, lastNDaysInclusive(todayKey, 7, timeZone)),
+		[sets, todayKey, timeZone],
+	);
+	const tonnage30d = useMemo(
+		() => totalTonnageForDayKeys(sets, lastNDaysInclusive(todayKey, 30, timeZone)),
+		[sets, todayKey, timeZone],
+	);
 
 	const typesSorted = useMemo(() => {
 		return Object.values(exerciseTypesById).sort((a, b) =>
@@ -121,6 +139,37 @@ export function StatsScreen() {
 				</div>
 			</div>
 
+			<div>
+				<h2 className="text-muted-foreground mb-1 text-sm font-medium">{t("tonnageSection")}</h2>
+				<p className="text-muted-foreground mb-3 text-xs">{t("tonnageSectionHint")}</p>
+				<div className="grid gap-3 sm:grid-cols-3">
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("tonnageToday")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnageToday, locale)}</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("tonnage7dCard")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnage7d, locale)}</p>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="pb-2">
+							<CardTitle className="text-sm font-medium">{t("tonnage30dCard")}</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-2xl font-semibold tabular-nums">{formatTonnageWithKgUnit(tonnage30d, locale)}</p>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+
 			<Card>
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm font-medium">{t("bestDay")}</CardTitle>
@@ -141,6 +190,7 @@ export function StatsScreen() {
 			</Card>
 
 			<StatsTrendCharts sets={sets} todayKey={todayKey} timeZone={timeZone} />
+			<StatsTonnageTrendCharts sets={sets} todayKey={todayKey} timeZone={timeZone} />
 			<StatsHeatmap sets={sets} todayKey={todayKey} timeZone={timeZone} />
 		</div>
 	);

@@ -11,6 +11,7 @@ import {
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang } from "@/shared/lib/format-day";
+import { formatWeightKgDisplay } from "@/shared/lib/format-weight-kg";
 import { MAIN_SCREEN_NS } from "../translations";
 
 function formatTime(iso: string, locale: string | undefined): string {
@@ -58,6 +59,26 @@ export function DaySetsList({ sets }: Props) {
 							<ExerciseTypeIcon exerciseType={iconVisual} style={color ? { color } : undefined} aria-hidden />
 							<span className="text-muted-foreground min-w-0 truncate text-sm">{typeLabel}</span>
 							<span className="text-lg font-semibold tabular-nums">{row.reps}</span>
+							{(() => {
+								const etRow = exerciseTypesById[row.exerciseTypeId];
+								const w = row.weightValue;
+								const hasW = w != null && Number.isFinite(w) && w > 0;
+								if (hasW) {
+									return (
+										<span className="text-muted-foreground text-sm tabular-nums">
+											× {formatWeightKgDisplay(w, locale)} {t("weightUnitKg")}
+										</span>
+									);
+								}
+								if (etRow?.trackWeightInSets) {
+									return (
+										<span className="text-muted-foreground text-sm" title={t("setListWeightMissing")}>
+											—
+										</span>
+									);
+								}
+								return null;
+							})()}
 							<span className="text-muted-foreground text-sm">{formatTime(row.createdAt, locale)}</span>
 						</div>
 						<Button

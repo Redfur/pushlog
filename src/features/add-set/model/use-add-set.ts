@@ -26,9 +26,12 @@ export function useAddSet(dayKey: DayKey) {
 	}, []);
 
 	const addReps = useCallback(
-		(reps: number) =>
+		(reps: number, weightKg?: number) =>
 			runGuarded(async () => {
-				const id = await addSet(reps, { dayKey });
+				const id = await addSet(reps, {
+					dayKey,
+					...(weightKg !== undefined ? { weightKg } : {}),
+				});
 				if (id) {
 					toast.success(t("toastAdded"), {
 						action: {

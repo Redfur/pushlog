@@ -45,7 +45,12 @@ export const manageExercisesTranslations = {
 		viewAllTimeTitle: "За всё время",
 		viewCardSets: "Подходы",
 		viewCardReps: "Повторения",
+		viewCardTonnageToday: "Тоннаж",
+		viewCardTonnageAllTime: "Тоннаж за всё время",
 		viewCardActiveDays: "Дней с записью",
 		editPageTitle: "Редактирование упражнения",
+		trackWeightLabel: "Отслеживать вес в подходах",
+		trackWeightHint:
+			"Если включено, при каждом подходе вводится вес (кг) вместе с числом повторений. Подходит для силовых упражнений.",
 	},
 } as const;

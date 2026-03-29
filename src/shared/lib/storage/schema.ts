@@ -6,6 +6,8 @@ export type PersistedSet = {
 	id: string;
 	exerciseTypeId: string;
 	reps: number;
+	/** Кг; только для упражнений с `trackWeightInSets` у типа. */
+	weightValue?: number | null;
 	createdAt: string;
 	dayKey: string;
 	version: number;
@@ -39,6 +41,8 @@ export type PersistedExerciseType = {
 	colorKind: "preset" | "custom";
 	/** preset: hex из `EXERCISE_COLOR_PRESET_HEX`; custom: `#rrggbb` */
 	colorValue: string;
+	/** При true в каждом подходе вводится вес (кг) вместе с повторениями. */
+	trackWeightInSets: boolean;
 	archivedAt: string | null;
 	createdAt: string;
 	updatedAt: string;

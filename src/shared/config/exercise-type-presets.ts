@@ -1,7 +1,7 @@
 import { firstGrapheme } from "@/shared/lib/first-grapheme";
 import type { PersistedExerciseType } from "@/shared/lib/storage/schema";
 
-export const EXERCISE_TYPE_ROW_VERSION = 2;
+export const EXERCISE_TYPE_ROW_VERSION = 3;
 
 /** Допустимые ключи иконок (Lucide в UI). */
 export const EXERCISE_ICON_PRESET_KEYS = [
@@ -90,23 +90,42 @@ export function pickExerciseTypeIconVisual(
 	};
 }
 
-export function createDefaultSeedExerciseType(now: string): PersistedExerciseType {
-	const id = crypto.randomUUID();
-	const name = "Отжимания";
-	return {
-		id,
-		name,
-		iconDisplay: "lucide",
-		iconKey: "dumbbell",
-		iconEmojiText: "",
-		nameInitialGlyph: firstGrapheme(name),
-		colorKind: "preset",
-		colorValue: EXERCISE_COLOR_PRESET_HEX[0],
-		archivedAt: null,
-		createdAt: now,
-		updatedAt: now,
-		version: EXERCISE_TYPE_ROW_VERSION,
-	};
+/** Стартовые типы для пустой БД: отжимания без веса и силовое с гантелями с трекингом веса. */
+export function createDefaultSeedExerciseTypes(now: string): PersistedExerciseType[] {
+	const pushupsName = "Отжимания";
+	const dumbbellName = "Жим гантелей";
+	return [
+		{
+			id: crypto.randomUUID(),
+			name: pushupsName,
+			iconDisplay: "text",
+			iconKey: "dumbbell",
+			iconEmojiText: "💪",
+			nameInitialGlyph: firstGrapheme(pushupsName),
+			colorKind: "preset",
+			colorValue: EXERCISE_COLOR_PRESET_HEX[0],
+			trackWeightInSets: false,
+			archivedAt: null,
+			createdAt: now,
+			updatedAt: now,
+			version: EXERCISE_TYPE_ROW_VERSION,
+		},
+		{
+			id: crypto.randomUUID(),
+			name: dumbbellName,
+			iconDisplay: "lucide",
+			iconKey: "dumbbell",
+			iconEmojiText: "",
+			nameInitialGlyph: firstGrapheme(dumbbellName),
+			colorKind: "preset",
+			colorValue: EXERCISE_COLOR_PRESET_HEX[1],
+			trackWeightInSets: true,
+			archivedAt: null,
+			createdAt: now,
+			updatedAt: now,
+			version: EXERCISE_TYPE_ROW_VERSION,
+		},
+	];
 }
 
 /** CSS color для графиков и акцентов (всегда конкретное значение, без var). */

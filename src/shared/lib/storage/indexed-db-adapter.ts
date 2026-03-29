@@ -1,12 +1,12 @@
 import { type DBSchema, deleteDB, type IDBPDatabase, openDB } from "idb";
-import { createDefaultSeedExerciseType } from "@/shared/config/exercise-type-presets";
+import { createDefaultSeedExerciseTypes } from "@/shared/config/exercise-type-presets";
 import type { StorageAdapter } from "./contract";
 import { buildMetaRow, goalsFromMeta, type MetaRowGoals } from "./meta-goals";
 import { normalizeExerciseTypeRow, type PersistedExerciseTypeLoose } from "./normalize-exercise-type-row";
 import type { PersistedExerciseType, PersistedGoal, PersistedMeta, PersistedSet } from "./schema";
 
 const DB_NAME = "pushlog";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const CURRENT_SCHEMA_VERSION = 1;
 
 interface PushlogDBSchema extends DBSchema {
@@ -45,7 +45,10 @@ function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 					const etStore = transaction.objectStore("exerciseTypes");
 					const existing = await etStore.getAll();
 					if (existing.length === 0) {
-						await etStore.put(createDefaultSeedExerciseType(new Date().toISOString()));
+						const now = new Date().toISOString();
+						for (const row of createDefaultSeedExerciseTypes(now)) {
+							await etStore.put(row);
+						}
 					}
 				}
 			},

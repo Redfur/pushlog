@@ -9,6 +9,7 @@ import { MAIN_SCREEN_NS } from "../translations";
 import { DayNavigation } from "./DayNavigation";
 import { DayProgress } from "./DayProgress";
 import { DaySetsList } from "./DaySetsList";
+import { DayTonnageCards } from "./DayTonnageCards";
 import { ExerciseQuickAddBlock } from "./ExerciseQuickAddBlock";
 
 type Props = {
@@ -56,6 +57,7 @@ export function DayScreen({ dayKey }: Props) {
 			</h1>
 			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
 			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
+			<DayTonnageCards sets={sets} dayKey={dayKey} todayKey={todayKey} timeZone={timeZone} />
 			<ExerciseQuickAddBlock
 				dayKey={dayKey}
 				dayAllowsLogging={canLog}

@@ -39,7 +39,7 @@
 **Структура состояния**
 
 - `sets` — кэш подходов после гидрации из IndexedDB
-- `exerciseTypesById: Record<id, PersistedExerciseType>` — каталог типов (UUID, имя, иконка/цвет, `archivedAt`)
+- `exerciseTypesById: Record<id, PersistedExerciseType>` — каталог типов (UUID, имя, иконка/цвет, `trackWeightInSets`, `archivedAt`)
 - `goalsByExercise: Record<exerciseTypeId, Goal>`
 - `preferredExerciseTypeId` — только среди **активных** типов; персист в `localStorage`
 - `hydrated: boolean` — гидратация завершена (успех или ошибка чтения)
@@ -53,7 +53,7 @@
 | Action | Назначение |
 |--------|------------|
 | `hydrate()` | Загрузка sets, goals, exercise types из `StorageAdapter`; восстановление preferred и таймзоны |
-| `addSet(reps, options?)` | Создать подход (`dayKey`, `exerciseTypeId` из options или preferred) |
+| `addSet(reps, options?)` | Создать подход (`dayKey`, `exerciseTypeId`, опционально `weightKg` — если у типа `trackWeightInSets`) |
 | `removeSet(id)` | Удалить подход, запись в storage |
 | `restoreSet(row)` | Вернуть подход (undo) |
 | `setDailyGoal` / `clearDailyGoal` | Цель по `exerciseTypeId` |

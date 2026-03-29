@@ -10,6 +10,7 @@ import {
 import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
 import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
+import { isValidSetWeightKg, roundWeightKg } from "@/shared/lib/parse-weight-input";
 import { readStoredPreferredExerciseTypeRaw, writePreferredExerciseTypeId } from "@/shared/lib/preferred-exercise-type";
 import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { getStorageAdapter } from "@/shared/lib/storage";
@@ -24,7 +25,7 @@ import {
 import { sortSetsByCreatedAtAsc } from "./day-sets";
 import type { Goal, PushlogSet } from "./types";
 
-const SET_VERSION = 1;
+const SET_VERSION = 2;
 
 function exerciseTypesToRecord(types: PersistedExerciseType[]): Record<string, PersistedExerciseType> {
 	return Object.fromEntries(types.map((t) => [t.id, t]));
@@ -50,12 +51,20 @@ type NewExerciseTypeInput = {
 	nameInitialGlyph: string;
 	colorKind: "preset" | "custom";
 	colorValue: string;
+	trackWeightInSets: boolean;
 };
 
 type UpdateExerciseTypeInput = Partial<
 	Pick<
 		PersistedExerciseType,
-		"name" | "iconDisplay" | "iconKey" | "iconEmojiText" | "nameInitialGlyph" | "colorKind" | "colorValue"
+		| "name"
+		| "iconDisplay"
+		| "iconKey"
+		| "iconEmojiText"
+		| "nameInitialGlyph"
+		| "colorKind"
+		| "colorValue"
+		| "trackWeightInSets"
 	>
 >;
 
@@ -68,7 +77,10 @@ type PushlogState = {
 	lastError: string | null;
 	timeZone: string;
 	hydrate: () => Promise<void>;
-	addSet: (reps: number, options?: { dayKey?: string; exerciseTypeId?: string }) => Promise<string | undefined>;
+	addSet: (
+		reps: number,
+		options?: { dayKey?: string; exerciseTypeId?: string; weightKg?: number | null },
+	) => Promise<string | undefined>;
 	removeSet: (id: string) => Promise<boolean>;
 	restoreSet: (row: PushlogSet) => Promise<boolean>;
 	setDailyGoal: (targetRepsPerDay: number, exerciseTypeId?: string) => Promise<void>;
@@ -200,6 +212,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 			nameInitialGlyph: input.nameInitialGlyph,
 			colorKind,
 			colorValue,
+			trackWeightInSets: input.trackWeightInSets,
 			archivedAt: null,
 			createdAt: now,
 			updatedAt: now,
@@ -254,6 +267,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 			nameInitialGlyph,
 			colorKind,
 			colorValue,
+			trackWeightInSets: patch.trackWeightInSets !== undefined ? patch.trackWeightInSets : prev.trackWeightInSets,
 			updatedAt: now,
 		};
 		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
@@ -314,12 +328,21 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		}
 	},
 
-	addSet: async (reps: number, options?: { dayKey?: string; exerciseTypeId?: string }) => {
+	addSet: async (reps: number, options?: { dayKey?: string; exerciseTypeId?: string; weightKg?: number | null }) => {
 		if (reps <= 0 || !Number.isFinite(reps)) return undefined;
 
 		const { timeZone, preferredExerciseTypeId } = get();
 		const exerciseTypeId = options?.exerciseTypeId ?? preferredExerciseTypeId;
 		if (!isActiveExerciseTypeId(get, exerciseTypeId)) return undefined;
+
+		const et = get().exerciseTypesById[exerciseTypeId];
+		const trackWeight = Boolean(et?.trackWeightInSets);
+		let weightValue: number | null | undefined;
+		if (trackWeight) {
+			const w = options?.weightKg;
+			if (w == null || !Number.isFinite(w) || !isValidSetWeightKg(w)) return undefined;
+			weightValue = roundWeightKg(w);
+		}
 
 		const targetDayKey = options?.dayKey ?? nowDayKey(timeZone);
 		if (!canLogSetsForDay(targetDayKey, timeZone)) return undefined;
@@ -328,6 +351,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 			id: generateId(),
 			exerciseTypeId,
 			reps: Math.floor(reps),
+			...(weightValue != null ? { weightValue } : {}),
 			createdAt: new Date().toISOString(),
 			dayKey: targetDayKey,
 			version: SET_VERSION,

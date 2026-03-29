@@ -37,6 +37,8 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 	const selectedName = selectedEt && !selectedEt.archivedAt ? selectedEt.name : activeSorted[0]?.name;
 	const effectivePreferredId =
 		selectedEt && !selectedEt.archivedAt ? preferredExerciseTypeId : (activeSorted[0]?.id ?? "");
+	const effectiveEt = effectivePreferredId ? exerciseTypesById[effectivePreferredId] : undefined;
+	const trackWeight = Boolean(effectiveEt && !effectiveEt.archivedAt && effectiveEt.trackWeightInSets);
 
 	if (activeSorted.length === 0) {
 		return (
@@ -85,7 +87,13 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 						);
 					})}
 				</div>
-				<QuickAddPanel canAddSet={allowLog} dayAllowsLogging={dayAllowsLogging} addReps={addReps} />
+				<QuickAddPanel
+					canAddSet={allowLog}
+					dayAllowsLogging={dayAllowsLogging}
+					trackWeight={trackWeight}
+					exerciseTypeId={effectivePreferredId}
+					addReps={addReps}
+				/>
 			</CardContent>
 		</Card>
 	);

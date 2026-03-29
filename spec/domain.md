@@ -21,9 +21,12 @@
 | `id` | string | UUID |
 | `exerciseTypeId` | string | UUID типа из каталога `exerciseTypes` (IndexedDB) |
 | `reps` | number | Целое > 0 |
+| `weightValue` | number \| null \| отсутствует | Кг; задаётся, если у типа упражнения `trackWeightInSets === true` |
 | `createdAt` | string | ISO UTC |
 | `dayKey` | string | День пользователя для индексации |
 | `version` | number | Опционально, для будущих миграций записей |
+
+**Производная метрика «тоннаж»:** для подходов с весом — `reps * weightValue` (кг×повторения); сумма по множеству подходов / дней — агрегаты в UI (экран дня, статистика).
 
 ### DayLog (виртуальный / view-модель)
 
@@ -84,6 +87,7 @@
 | `nameInitialGlyph` | Первая графема названия (обновляется при сохранении формы) |
 | `colorKind` | `preset` \| `custom` |
 | `colorValue` | hex пресета или `#rrggbb` для custom |
+| `trackWeightInSets` | boolean — при `true` каждый новый подход требует ввод веса (кг) вместе с повторениями |
 | `archivedAt` | ISO или `null` (архив — не в выборе для новых подходов) |
 | `createdAt` / `updatedAt` | ISO |
 | `version` | Версия строки для миграций |
