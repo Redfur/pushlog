@@ -44,9 +44,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
 		const err = this.state.error;
 		const pendingChunkReload =
-			isChunkLoadError(err) &&
-			typeof sessionStorage !== "undefined" &&
-			!sessionStorage.getItem(CHUNK_RELOAD_KEY);
+			isChunkLoadError(err) && typeof sessionStorage !== "undefined" && !sessionStorage.getItem(CHUNK_RELOAD_KEY);
 
 		if (pendingChunkReload) {
 			return null;
@@ -54,12 +52,8 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-4 py-12 text-center">
-				<p className="text-foreground max-w-sm text-base font-medium">
-					{i18n.t("routeErrorTitle", { ns: COMMON_NS })}
-				</p>
-				<p className="text-muted-foreground max-w-sm text-sm">
-					{i18n.t("routeErrorHint", { ns: COMMON_NS })}
-				</p>
+				<p className="text-foreground max-w-sm text-base font-medium">{i18n.t("routeErrorTitle", { ns: COMMON_NS })}</p>
+				<p className="text-muted-foreground max-w-sm text-sm">{i18n.t("routeErrorHint", { ns: COMMON_NS })}</p>
 				<Button type="button" onClick={() => window.location.reload()}>
 					{i18n.t("reloadPage", { ns: COMMON_NS })}
 				</Button>
