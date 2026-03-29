@@ -34,7 +34,15 @@ npm install
 2. Выставьте ту же версию в поле `version` в [package.json](package.json).
 3. Закоммитьте изменения.
 4. Запустите **`npm run release -- X.Y.Z`** (например `npm run release -- 1.1.0`). Скрипт [scripts/release.sh](scripts/release.sh) проверит: наличие и объём секции в CHANGELOG, совпадение версии с `package.json`, отсутствие тега, чистое git-дерево, затем выполнит `npm run check` и `npm run knip` (отключить: `--skip-ci`), создаст тег `vX.Y.Z` и выполнит `git push origin`. Проверки без тега: **`npm run release -- X.Y.Z --dry-run`** (можно до коммита). Флаги: `--skip-ci`, `--dry-run`.
-5. GitHub Actions создаст **Release** с текстом из CHANGELOG и списком коммитов, затем опубликует сборку на **GitHub Pages** (после публикации релиза).
+5. Один workflow **[`.github/workflows/release.yml`](.github/workflows/release.yml)** при **push тега** `v*.*.*`: создаёт страницу **GitHub Release** (если ещё нет), затем **собирает и деплоит** на **GitHub Pages** (тот же pipeline, что и раньше в отдельном файле — без зависимости от события `release` на default branch).
+
+### Ручной деплой без нового тега
+
+**Actions** → **Release and deploy to GitHub Pages** → **Run workflow** → укажите поле **tag** (например `v1.0.0`). Тег должен уже существовать в репозитории. Будут выполнены те же шаги `check` / `knip` / `build` / deploy.
+
+### Ручное подтверждение перед выкладкой (опционально)
+
+В репозитории: **Settings** → **Environments** → **github-pages** → включите **Required reviewers** (и при необходимости **wait timer**). Тогда job **deploy** будет ждать одобрения в интерфейсе GitHub перед публикацией на Pages.
 
 ## Версия и репозиторий в приложении
 
