@@ -26,11 +26,19 @@ export function useAddSet(dayKey: DayKey) {
 	}, []);
 
 	const addReps = useCallback(
-		(reps: number, weightKg?: number) =>
+		(
+			reps: number,
+			opts?: {
+				weightKg?: number;
+				/** Явный тип; иначе в сторе используется preferredExerciseTypeId. */
+				exerciseTypeId?: string;
+			},
+		) =>
 			runGuarded(async () => {
 				const id = await addSet(reps, {
 					dayKey,
-					...(weightKg !== undefined ? { weightKg } : {}),
+					...(opts?.exerciseTypeId ? { exerciseTypeId: opts.exerciseTypeId } : {}),
+					...(opts?.weightKg !== undefined ? { weightKg: opts.weightKg } : {}),
 				});
 				if (id) {
 					toast.success(t("toastAdded"), {

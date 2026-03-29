@@ -25,7 +25,10 @@ type Props = {
 	trackWeight: boolean;
 	/** Активный тип для черновика в localStorage. */
 	exerciseTypeId: string;
-	addReps: (reps: number, weightKg?: number) => void;
+	addReps: (
+		reps: number,
+		opts?: { weightKg?: number; exerciseTypeId?: string },
+	) => void;
 };
 
 function parseDraftInt(draft: string): number {
@@ -100,9 +103,9 @@ export function QuickAddPanel({ canAddSet, dayAllowsLogging, trackWeight, exerci
 		if (trackWeight && parsedWeight != null) {
 			const w = roundWeightKg(parsedWeight);
 			if (!isValidSetWeightKg(w)) return false;
-			void addReps(parsedReps, w);
+			void addReps(parsedReps, { weightKg: w, exerciseTypeId });
 		} else {
-			void addReps(parsedReps);
+			void addReps(parsedReps, { exerciseTypeId });
 		}
 		if (exerciseTypeId) {
 			saveQuickAddDraft(exerciseTypeId, { reps: draftReps, weight: draftWeight });

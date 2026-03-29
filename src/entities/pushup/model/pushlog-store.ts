@@ -226,6 +226,9 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		try {
 			await getStorageAdapter().putExerciseType(row);
 			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseCreate, { name: row.name });
+			if (!get().preferredExerciseTypeId) {
+				get().setPreferredExerciseTypeId(row.id);
+			}
 			return row.id;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
