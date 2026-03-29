@@ -7,7 +7,6 @@ export const homeScreenTranslations = {
 		todayAllTypesCardTitle: "Все упражнения",
 		cardSets: "Подходов",
 		cardReps: "Повторений",
-		todayRepsMixedHint: "Сумма по всем типам; разные упражнения нельзя складывать как одну метрику.",
 		exercisesSection: "Упражнения",
 		addExercise: "Добавить упражнение",
 		archivedSection: "В архиве",

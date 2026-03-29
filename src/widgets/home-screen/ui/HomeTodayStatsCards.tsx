@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { filterSetsByDayKey, totalTonnageForDayKey, usePushlogStore } from "@/entities/pushup";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
@@ -44,16 +44,18 @@ export function HomeTodayStatsCards({ todayKey }: Props) {
 			<div className="grid gap-3 sm:grid-cols-2">
 				<Card className="sm:col-span-2">
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">{t("todayAllTypesCardTitle")}</CardTitle>
-						<CardDescription className="text-xs">{t("todayRepsMixedHint")}</CardDescription>
+						<CardTitle className="text-sm font-medium">
+							{t("todayAllTypesCardTitle")}
+							<span className="ml-2 text-muted-foreground text-xs font-normal">{t("cardLabelToday")}</span>
+						</CardTitle>
 					</CardHeader>
 					<CardContent className="grid gap-3 sm:grid-cols-2">
 						<div>
-							<p className="text-muted-foreground text-xs">{t("cardSetsToday")}</p>
+							<p className="text-muted-foreground text-xs">{t("cardSets")}</p>
 							<p className="text-2xl font-semibold tabular-nums">{totalSetCount}</p>
 						</div>
 						<div>
-							<p className="text-muted-foreground text-xs">{t("cardRepsToday")}</p>
+							<p className="text-muted-foreground text-xs">{t("cardReps")}</p>
 							<p className="text-2xl font-semibold tabular-nums">{totalReps}</p>
 						</div>
 					</CardContent>
