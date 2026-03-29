@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import {
+	AlertDialog,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +50,7 @@ export function ExercisePage() {
 	const addExerciseType = usePushlogStore((s) => s.addExerciseType);
 	const archiveExerciseType = usePushlogStore((s) => s.archiveExerciseType);
 	const unarchiveExerciseType = usePushlogStore((s) => s.unarchiveExerciseType);
+	const deleteExerciseType = usePushlogStore((s) => s.deleteExerciseType);
 	const timeZone = usePushlogStore((s) => s.timeZone);
 	const todayKey = useTodayDayKey(timeZone);
 
@@ -49,6 +60,7 @@ export function ExercisePage() {
 
 	const [draft, setDraft] = useState<ExerciseTypeDraft>(defaultExerciseTypeDraft);
 	const [hexError, setHexError] = useState<string | null>(null);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	useEffect(() => {
 		if (isNew) {
@@ -136,7 +148,19 @@ export function ExercisePage() {
 		);
 	}
 
+	const exerciseId = validId;
 	const accent = resolveExerciseTypeColor(et);
+
+	async function handleConfirmDelete() {
+		const ok = await deleteExerciseType(exerciseId);
+		if (ok) {
+			toast.success(t("toastExerciseDeleted"));
+			setDeleteDialogOpen(false);
+			navigate("/", { replace: true });
+		} else {
+			toast.error(t("toastExerciseDeleteFailed"));
+		}
+	}
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
@@ -253,7 +277,25 @@ export function ExercisePage() {
 						{t("archive")}
 					</Button>
 				)}
+				<Button type="button" variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+					{t("deleteExerciseForever")}
+				</Button>
 			</div>
+
+			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>{t("deleteExerciseDialogTitle")}</AlertDialogTitle>
+						<AlertDialogDescription>{t("deleteExerciseDialogDescription")}</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel type="button">{t("cancel")}</AlertDialogCancel>
+						<Button type="button" variant="destructive" onClick={() => void handleConfirmDelete()}>
+							{t("deleteExerciseConfirm")}
+						</Button>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

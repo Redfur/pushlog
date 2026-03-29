@@ -52,5 +52,14 @@ export const manageExercisesTranslations = {
 		trackWeightLabel: "Отслеживать вес в подходах",
 		trackWeightHint:
 			"Если включено, при каждом подходе вводится вес (кг) вместе с числом повторений. Подходит для силовых упражнений.",
+		toastExerciseSaved: "Изменения сохранены",
+		toastExerciseSaveFailed: "Не удалось сохранить изменения",
+		deleteExerciseForever: "Удалить навсегда",
+		deleteExerciseDialogTitle: "Удалить упражнение?",
+		deleteExerciseDialogDescription:
+			"Будут безвозвратно удалены этот тип, все подходы по нему и дневная цель. Это действие нельзя отменить.",
+		deleteExerciseConfirm: "Удалить навсегда",
+		toastExerciseDeleted: "Упражнение удалено",
+		toastExerciseDeleteFailed: "Не удалось удалить упражнение",
 	},
 } as const;

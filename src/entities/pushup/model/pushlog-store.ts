@@ -90,6 +90,7 @@ type PushlogState = {
 	updateExerciseType: (id: string, patch: UpdateExerciseTypeInput) => Promise<boolean>;
 	archiveExerciseType: (id: string) => Promise<boolean>;
 	unarchiveExerciseType: (id: string) => Promise<boolean>;
+	deleteExerciseType: (id: string) => Promise<boolean>;
 	setTimeZone: (timeZone: string) => void;
 	clearError: () => void;
 };
@@ -324,6 +325,59 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			set({ exerciseTypesById: { ...get().exerciseTypesById, [id]: prev }, lastError: message });
+			return false;
+		}
+	},
+
+	deleteExerciseType: async (id: string) => {
+		const prevEt = get().exerciseTypesById[id];
+		if (!prevEt) return false;
+		const prevSets = get().sets;
+		const prevGoals = get().goalsByExercise;
+		const prevTypes = get().exerciseTypesById;
+		const prevPreferred = get().preferredExerciseTypeId;
+
+		const nextTypes = { ...prevTypes };
+		delete nextTypes[id];
+		const nextSets = prevSets.filter((s) => s.exerciseTypeId !== id);
+		const nextGoals = { ...prevGoals };
+		delete nextGoals[id];
+
+		let nextPreferred = prevPreferred;
+		if (prevPreferred === id) {
+			const nextPref = firstActiveExerciseTypeId(nextTypes);
+			if (nextPref) {
+				writePreferredExerciseTypeId(nextPref);
+				nextPreferred = nextPref;
+			} else {
+				nextPreferred = "";
+			}
+		}
+
+		set({
+			exerciseTypesById: nextTypes,
+			sets: nextSets,
+			goalsByExercise: nextGoals,
+			preferredExerciseTypeId: nextPreferred,
+			lastError: null,
+		});
+
+		try {
+			await getStorageAdapter().deleteExerciseType(id);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseDelete, { name: prevEt.name });
+			return true;
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e);
+			if (prevPreferred) {
+				writePreferredExerciseTypeId(prevPreferred);
+			}
+			set({
+				exerciseTypesById: prevTypes,
+				sets: prevSets,
+				goalsByExercise: prevGoals,
+				preferredExerciseTypeId: prevPreferred,
+				lastError: message,
+			});
 			return false;
 		}
 	},

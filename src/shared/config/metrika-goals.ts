@@ -9,6 +9,7 @@ export const METRIKA_GOALS = {
 	exerciseEdit: "exercise/edit",
 	exerciseArchive: "exercise/archive",
 	exerciseUnarchive: "exercise/unarchive",
+	exerciseDelete: "exercise/delete",
 	exerciseGoalSet: "exercise/goal_set",
 	exerciseGoalClear: "exercise/goal_clear",
 	exerciseRemove: "exercise/remove",

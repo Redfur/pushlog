@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePushlogStore } from "@/entities/pushup";
@@ -17,6 +18,7 @@ import { isExerciseTypeUuid } from "@/shared/config/exercise-type-presets";
 
 export function ExerciseEditPage() {
 	const { exerciseId: rawParam } = useParams<{ exerciseId: string }>();
+	const navigate = useNavigate();
 	const { t } = useTranslation(MANAGE_EXERCISES_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
@@ -42,7 +44,14 @@ export function ExerciseEditPage() {
 			return;
 		}
 		setHexError(null);
-		if (validId) await updateExerciseType(validId, normalized.value);
+		if (!validId) return;
+		const ok = await updateExerciseType(validId, normalized.value);
+		if (ok) {
+			toast.success(t("toastExerciseSaved"));
+			navigate(`/exercises/${validId}`, { replace: true });
+		} else {
+			toast.error(t("toastExerciseSaveFailed"));
+		}
 	}
 
 	if (!hydrated) {

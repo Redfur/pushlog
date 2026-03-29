@@ -117,6 +117,26 @@ function createIndexedDbStorageAdapter(): StorageAdapter {
 			await db.put("exerciseTypes", row);
 		},
 
+		async deleteExerciseType(id: string) {
+			const db = await getDb();
+			const tx = db.transaction(["sets", "meta", "exerciseTypes"], "readwrite");
+			const setsStore = tx.objectStore("sets");
+			const allSets = await setsStore.getAll();
+			for (const row of allSets) {
+				if (row.exerciseTypeId === id) {
+					await setsStore.delete(row.id);
+				}
+			}
+			const metaStore = tx.objectStore("meta");
+			const rawMeta = await metaStore.get(META_KEY);
+			const meta = rawMeta ?? { key: META_KEY, schemaVersion: CURRENT_SCHEMA_VERSION };
+			const goals = goalsFromMeta(meta);
+			delete goals[id];
+			await metaStore.put(buildMetaRow(meta, goals));
+			await tx.objectStore("exerciseTypes").delete(id);
+			await tx.done;
+		},
+
 		async getExerciseType(id: string) {
 			const db = await getDb();
 			const row = await db.get("exerciseTypes", id);

@@ -89,6 +89,7 @@ interface StorageAdapter {
   getAllExerciseTypes(): Promise<PersistedExerciseType[]>
   getExerciseType(id: string): Promise<PersistedExerciseType | undefined>
   putExerciseType(row: PersistedExerciseType): Promise<void>
+  deleteExerciseType(id: string): Promise<void>
 }
 ```
 
