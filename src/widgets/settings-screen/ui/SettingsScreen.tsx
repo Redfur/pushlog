@@ -219,6 +219,45 @@ export function SettingsScreen() {
 					/>
 				</CardContent>
 			</Card>
+
+			<SettingsAboutFooter />
+		</div>
+	);
+}
+
+function displayAppVersion(raw: string): string {
+	if (raw.startsWith("v")) {
+		return raw.slice(1);
+	}
+	return raw;
+}
+
+function SettingsAboutFooter() {
+	const { t } = useTranslation(SETTINGS_SCREEN_NS);
+	const versionRaw = import.meta.env.VITE_APP_VERSION;
+	const version = displayAppVersion(versionRaw);
+	const repoUrl = import.meta.env.VITE_REPO_URL.trim() ?? "https://github.com/redfur/pushlog";
+
+	return (
+		<div className="text-center text-muted-foreground/80 text-xs">
+			<div className="space-y-1 leading-relaxed">
+				<p>
+					{t("aboutVersion", { version })}
+					{repoUrl ? (
+						<>
+							{" — "}
+							<a
+								href={repoUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="font-medium underline-offset-4 hover:underline text-xs"
+							>
+								{t("aboutRepository")}
+							</a>
+						</>
+					) : null}
+				</p>
+			</div>
 		</div>
 	);
 }

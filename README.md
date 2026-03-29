@@ -26,6 +26,19 @@ npm install
 | `npm run check` | Biome: линт и форматирование |
 | `npm run check:fix` | То же с автоисправлением |
 | `npm run knip` | Поиск неиспользуемых экспортов и файлов (см. `knip.json`) |
+| `npm run release -- <версия>` | Проверки и создание тега релиза (см. ниже) |
+
+## Релизы и деплой
+
+1. Обновите [CHANGELOG.md](CHANGELOG.md): секция `## [X.Y.Z] - дата` (версия **без** префикса `v`) с описанием релиза; при необходимости перенесите пункты из `## [Unreleased]`.
+2. Выставьте ту же версию в поле `version` в [package.json](package.json).
+3. Закоммитьте изменения.
+4. Запустите **`npm run release -- X.Y.Z`** (например `npm run release -- 1.1.0`). Скрипт [scripts/release.sh](scripts/release.sh) проверит: наличие и объём секции в CHANGELOG, совпадение версии с `package.json`, отсутствие тега, чистое git-дерево, затем выполнит `npm run check` и `npm run knip` (отключить: `--skip-ci`), создаст тег `vX.Y.Z` и выполнит `git push origin`. Проверки без тега: **`npm run release -- X.Y.Z --dry-run`** (можно до коммита). Флаги: `--skip-ci`, `--dry-run`.
+5. GitHub Actions создаст **Release** с текстом из CHANGELOG и списком коммитов, затем опубликует сборку на **GitHub Pages** (после публикации релиза).
+
+## Версия и репозиторий в приложении
+
+Внизу экрана **Настройки** выводятся номер версии и ссылка «Репозиторий на GitHub». При сборке в **GitHub Actions** подставляются переменные `VITE_APP_VERSION` (имя тега релиза, например `v1.1.0`) и `VITE_REPO_URL` (`https://github.com/<текущий репозиторий>`). Локально версия берётся из поля `version` в [package.json](package.json), ссылка — из поля `repository` (при форке замените URL на свой).
 
 ## Документация
 

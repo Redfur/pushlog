@@ -33,5 +33,8 @@ export const settingsScreenTranslations = {
 		clearAllConfirm: "Очистить всё и перезагрузить?",
 		confirmAction: "Выполнить",
 		cancelDialog: "Отмена",
+		aboutSection: "О приложении",
+		aboutVersion: "Версия {{version}}",
+		aboutRepository: "GitHub",
 	},
 } as const;

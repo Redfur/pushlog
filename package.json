@@ -1,7 +1,11 @@
 {
   "name": "pushlog",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redfur/pushlog.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +16,8 @@
     "check": "biome check",
     "check:fix": "biome check --write",
     "knip": "knip",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
