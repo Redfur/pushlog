@@ -11,6 +11,7 @@
 | [ui.md](./ui.md) | Экраны, компоненты, поведение |
 | [architecture.md](./architecture.md) | FSD, store, storage, data flow |
 | [non-functional.md](./non-functional.md) | Производительность, offline, надёжность |
+| [analytics-metrika.md](./analytics-metrika.md) | Яндекс Метрика: цели, параметры, opt-out |
 | [roadmap.md](./roadmap.md) | Этапы развития продукта |
 
 При изменении кода актуализировать соответствующие разделы.

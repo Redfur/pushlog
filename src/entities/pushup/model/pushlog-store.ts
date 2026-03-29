@@ -7,9 +7,11 @@ import {
 	isValidExerciseIconKey,
 	resolvePresetColorValueToHex,
 } from "@/shared/config/exercise-type-presets";
+import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
 import { canLogSetsForDay, getDefaultTimeZone, nowDayKey } from "@/shared/lib/day-key";
 import { generateId } from "@/shared/lib/id";
 import { readStoredPreferredExerciseTypeRaw, writePreferredExerciseTypeId } from "@/shared/lib/preferred-exercise-type";
+import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { getStorageAdapter } from "@/shared/lib/storage";
 import type { ExerciseIconDisplay, PersistedExerciseType } from "@/shared/lib/storage/schema";
 import {
@@ -102,8 +104,15 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 	setPreferredExerciseTypeId: (exerciseTypeId: string) => {
 		if (!isActiveExerciseTypeId(get, exerciseTypeId)) return;
+		const prev = get().preferredExerciseTypeId;
+		if (prev === exerciseTypeId) return;
 		writePreferredExerciseTypeId(exerciseTypeId);
 		set({ preferredExerciseTypeId: exerciseTypeId });
+		const et = get().exerciseTypesById[exerciseTypeId];
+		const exerciseName = et?.name?.trim();
+		pushlogAnalytics.reachGoal(METRIKA_GOALS.exercisePreferredChange, {
+			...(exerciseName ? { exercise_name: exerciseName } : {}),
+		});
 	},
 
 	hydrate: async () => {
@@ -146,13 +155,22 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 	setTimeZone: (timeZone: string) => {
 		if (timeZone === TIMEZONE_AUTO_SELECT_VALUE) {
+			const hadExplicitTz = readStoredTimeZone() !== null;
 			clearStoredTimeZone();
 			set({ timeZone: getDefaultTimeZone() });
+			if (hadExplicitTz) {
+				pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsTimezoneChange, { is_auto: 1 });
+			}
 			return;
 		}
 		if (!isValidTimeZoneId(timeZone)) return;
+		if (readStoredTimeZone() === timeZone) return;
 		writeStoredTimeZone(timeZone);
 		set({ timeZone });
+		pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsTimezoneChange, {
+			is_auto: 0,
+			timezone: timeZone,
+		});
 	},
 
 	addExerciseType: async (input: NewExerciseTypeInput) => {
@@ -193,6 +211,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		}));
 		try {
 			await getStorageAdapter().putExerciseType(row);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseCreate, { name: row.name });
 			return row.id;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
@@ -240,6 +259,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
 		try {
 			await getStorageAdapter().putExerciseType(row);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseEdit, { name: row.name });
 			return true;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
@@ -256,6 +276,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
 		try {
 			await getStorageAdapter().putExerciseType(row);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseArchive, { name: prev.name });
 			if (get().preferredExerciseTypeId === id) {
 				const nextPref = firstActiveExerciseTypeId(get().exerciseTypesById);
 				if (nextPref) {
@@ -280,6 +301,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set((s) => ({ exerciseTypesById: { ...s.exerciseTypesById, [id]: row }, lastError: null }));
 		try {
 			await getStorageAdapter().putExerciseType(row);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseUnarchive, { name: row.name });
 			if (!get().preferredExerciseTypeId) {
 				writePreferredExerciseTypeId(id);
 				set({ preferredExerciseTypeId: id });
@@ -315,6 +337,12 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 		try {
 			await getStorageAdapter().putSet(row);
+			const et = get().exerciseTypesById[exerciseTypeId];
+			const exerciseName = et?.name?.trim();
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseSetLogged, {
+				reps: row.reps,
+				...(exerciseName ? { exercise_name: exerciseName } : {}),
+			});
 			return row.id;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
@@ -335,6 +363,12 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 
 		try {
 			await getStorageAdapter().deleteSet(id);
+			const et = get().exerciseTypesById[removed.exerciseTypeId];
+			const exerciseName = et?.name?.trim();
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseRemove, {
+				reps: removed.reps,
+				...(exerciseName ? { exercise_name: exerciseName } : {}),
+			});
 			return true;
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
@@ -378,6 +412,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set({ goalsByExercise: nextGoals, lastError: null });
 		try {
 			await getStorageAdapter().putGoalForExercise(goal);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseGoalSet, { target_reps_per_day: n });
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			const rolled: Record<string, Goal> = { ...prevGoals };
@@ -398,6 +433,7 @@ export const usePushlogStore = create<PushlogState>((set, get) => ({
 		set({ goalsByExercise: nextGoals, lastError: null });
 		try {
 			await getStorageAdapter().clearGoalForExercise(exerciseTypeId);
+			pushlogAnalytics.reachGoal(METRIKA_GOALS.exerciseGoalClear);
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			set({ goalsByExercise: prevGoals, lastError: message });

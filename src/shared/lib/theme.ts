@@ -1,4 +1,6 @@
+import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
 import { CLIENT_STORAGE_KEYS } from "@/shared/lib/client-storage-keys";
+import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 
 const THEME_KEY = CLIENT_STORAGE_KEYS.theme;
 
@@ -93,12 +95,15 @@ function applyThemePreference(): void {
 }
 
 export function setThemePreference(preference: ThemePreference): void {
+	const prev = readStoredPreference() ?? "system";
+	if (prev === preference) return;
 	try {
 		localStorage.setItem(THEME_KEY, preference);
 	} catch {
 		/* ignore */
 	}
 	applyThemePreference();
+	pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsThemeChange, { preference });
 }
 
 export function initTheme(): void {

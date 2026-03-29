@@ -15,9 +15,13 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { usePushlogStore } from "@/entities/pushup";
 import { TimezoneSelect } from "@/features/set-timezone";
+import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
+import { readAnalyticsGoalsEnabled, writeAnalyticsGoalsEnabled } from "@/shared/lib/analytics-goals-preference";
 import { clearClientStoragePreferences } from "@/shared/lib/clear-client-storage";
+import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
 import {
 	getThemePreference,
@@ -29,6 +33,38 @@ import {
 import { TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
 import { cn } from "@/shared/lib/utils";
 import { SETTINGS_SCREEN_NS } from "../translations";
+
+function AnalyticsGoalsRow() {
+	const { t } = useTranslation(SETTINGS_SCREEN_NS);
+	const [enabled, setEnabled] = useState(() => readAnalyticsGoalsEnabled());
+
+	return (
+		<div className="border-border/50 text-muted-foreground rounded-md border border-dashed px-3 py-2.5">
+			<div className="flex items-start justify-between gap-3">
+				<div className="min-w-0 space-y-0.5">
+					<p className="text-xs leading-snug">{t("analyticsGoalsLabel")}</p>
+					<p className="text-[11px] leading-snug opacity-90">{t("analyticsGoalsHint")}</p>
+				</div>
+				<Switch
+					size="sm"
+					className="shrink-0"
+					checked={enabled}
+					onCheckedChange={(v) => {
+						if (!v) {
+							pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsAnalyticsToggle, { enabled: 0 });
+							writeAnalyticsGoalsEnabled(false);
+						} else {
+							writeAnalyticsGoalsEnabled(true);
+							pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsAnalyticsToggle, { enabled: 1 });
+						}
+						setEnabled(v);
+					}}
+					aria-label={t("analyticsGoalsLabel")}
+				/>
+			</div>
+		</div>
+	);
+}
 
 function ThemePreferenceSelect({ labelId }: { labelId: string }) {
 	const { t } = useTranslation(SETTINGS_SCREEN_NS);
@@ -70,18 +106,21 @@ export function SettingsScreen() {
 
 	const handleClearIndexedDb = async () => {
 		await wipePushlogIndexedDatabase();
+		pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsDataClearIndexedDb);
 		window.location.reload();
 	};
 
 	const handleClearLocalPreferences = () => {
 		clearClientStoragePreferences();
 		setTimeZone(TIMEZONE_AUTO_SELECT_VALUE);
+		pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsDataClearLocalPreferences);
 	};
 
 	const handleClearAll = async () => {
 		await wipePushlogIndexedDatabase();
 		clearClientStoragePreferences();
 		setTimeZone(TIMEZONE_AUTO_SELECT_VALUE);
+		pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsDataClearAll);
 		window.location.reload();
 	};
 
@@ -143,6 +182,8 @@ export function SettingsScreen() {
 					<TimezoneSelect />
 				</CardContent>
 			</Card>
+
+			<AnalyticsGoalsRow />
 
 			<Card className="border-destructive/40">
 				<CardHeader className="pb-2">
