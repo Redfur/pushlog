@@ -49,7 +49,7 @@ export default defineConfig({
 		biomePlugin(),
 		tailwindcss(),
 		VitePWA({
-			registerType: "autoUpdate",
+			registerType: "prompt",
 			manifestFilename: "site.webmanifest",
 			manifest: {
 				name: "push log",

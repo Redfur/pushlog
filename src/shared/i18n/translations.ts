@@ -15,5 +15,8 @@ export const commonTranslations = {
 		toastAdded: "Подход добавлен",
 		toastRemoved: "Подход удалён",
 		undo: "Отменить",
+		routeErrorTitle: "Не удалось открыть экран",
+		routeErrorHint: "Возможно, вышла новая версия приложения или прервалась сеть. Обновите страницу.",
+		reloadPage: "Обновить страницу",
 	},
 } as const;

@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/app/layout/app-shell";
+import { RouteErrorBoundary } from "@/app/providers/route-error-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayPage } from "@/pages/day";
 import { HomePage } from "@/pages/home";
@@ -137,7 +138,9 @@ function App() {
 	return (
 		<BrowserRouter basename={import.meta.env.BASE_URL}>
 			<AppShell>
-				<AppRoutes />
+				<RouteErrorBoundary>
+					<AppRoutes />
+				</RouteErrorBoundary>
 			</AppShell>
 		</BrowserRouter>
 	);
