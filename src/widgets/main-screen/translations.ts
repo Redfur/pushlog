@@ -10,7 +10,7 @@ export const mainScreenTranslations = {
 		progressTypeLine: "{{name}} — {{reps}} повт.",
 		progressTypeGoal: "{{name}}: {{current}} / {{target}}",
 		totalEntriesLine: "Записей подходов за день: {{count}}",
-		emptyDayProgress: "За этот день пока нет повторений.",
+		emptyDayProgress: "За этот день пока нет подходов.",
 		empty: "Пока нет подходов. Начните тренировку!",
 		quickAddCardTitle: "Добавить подход — {{name}}",
 		quickAddRepsPlaceholder: "Количество повторов",
