@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
-import "@/widgets/stats";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	computeStatsForExerciseType,
 	lastNDaysInclusive,
@@ -22,6 +20,7 @@ import {
 } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit, formatWeightKgDisplay } from "@/shared/lib/format-weight-kg";
+import { StatsLoadingSkeleton } from "@/widgets/stats";
 import { STATS_NS } from "@/widgets/stats/translations";
 import { StatsHeatmap } from "@/widgets/stats/ui/StatsHeatmap";
 import { StatsTonnageTrendCharts } from "@/widgets/stats/ui/StatsTonnageTrendCharts";
@@ -63,16 +62,7 @@ export function StatsExercisePage() {
 	const accent = et ? resolveExerciseTypeColor(et) : "var(--color-primary)";
 
 	if (!hydrated) {
-		return (
-			<div className="flex flex-col gap-4 py-4">
-				<Skeleton className="h-8 w-56" />
-				<div className="grid gap-3 sm:grid-cols-2">
-					<Skeleton className="h-24 rounded-lg" />
-					<Skeleton className="h-24 rounded-lg" />
-				</div>
-				<Skeleton className="h-56 w-full rounded-lg" />
-			</div>
-		);
+		return <StatsLoadingSkeleton variant="exercise" />;
 	}
 
 	if (!validId || !et || !stats) {

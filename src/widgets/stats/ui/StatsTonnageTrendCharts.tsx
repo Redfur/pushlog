@@ -7,20 +7,12 @@ import { buildDailyTonnageSeries, lastNDaysInclusive, type PushlogSet } from "@/
 import type { DayKey } from "@/shared/lib/day-key";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { formatTonnageMassDisplay } from "@/shared/lib/format-weight-kg";
+import { shortDayLabel } from "../lib/chart-day-label";
 import { STATS_NS } from "../translations";
 
 type Period = 7 | 30;
 
 const CHART_HEIGHT_PX = 224;
-
-function shortDayLabel(dayKey: DayKey, locale: string | undefined): string {
-	const [y, m, d] = dayKey.split("-").map(Number);
-	const date = new Date(y, m - 1, d);
-	return new Intl.DateTimeFormat(locale, {
-		day: "numeric",
-		month: "numeric",
-	}).format(date);
-}
 
 type ChartRow = {
 	dayKey: DayKey;

@@ -2,18 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import {
-	AlertDialog,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	computeStatsForExerciseType,
 	filterSetsByDayKey,
@@ -35,8 +24,9 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
-import { formatTonnageMassDisplay } from "@/shared/lib/format-weight-kg";
-import { cn } from "@/shared/lib/utils";
+import { ExerciseDeleteDialog } from "./ExerciseDeleteDialog";
+import { ExerciseDetailStatsSection } from "./ExerciseDetailStatsSection";
+import { ExercisePageSkeleton } from "./ExercisePageSkeleton";
 
 export function ExercisePage() {
 	const loc = useLocation();
@@ -103,12 +93,7 @@ export function ExercisePage() {
 	}
 
 	if (!hydrated) {
-		return (
-			<div className="flex flex-col gap-4 py-4">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-40 w-full rounded-lg" />
-			</div>
-		);
+		return <ExercisePageSkeleton />;
 	}
 
 	if (isNew) {
@@ -187,84 +172,18 @@ export function ExercisePage() {
 			</div>
 
 			{statsAll ? (
-				<div className="flex flex-col gap-4">
-					<div>
-						<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("viewTodayTitle")}</h2>
-						<div
-							className={cn("grid gap-3", et.trackWeightInSets ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2")}
-						>
-							<Card>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-medium">{t("viewCardSets")}</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-2xl font-semibold tabular-nums">{todaySetCount}</p>
-								</CardContent>
-							</Card>
-							<Card>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-medium">{t("viewCardReps")}</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-2xl font-semibold tabular-nums">{todayReps}</p>
-								</CardContent>
-							</Card>
-							{et.trackWeightInSets ? (
-								<Card className="sm:col-span-2 lg:col-span-1">
-									<CardHeader className="pb-2">
-										<CardTitle className="text-sm font-medium">{t("viewCardTonnageToday")}</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<p className="text-2xl font-semibold tabular-nums">
-											{formatTonnageMassDisplay(todayTonnage, i18n.language)}
-										</p>
-									</CardContent>
-								</Card>
-							) : null}
-						</div>
-					</div>
-					<div>
-						<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("viewAllTimeTitle")}</h2>
-						<div className="grid gap-3 sm:grid-cols-2">
-							<Card>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-medium">{t("viewCardReps")}</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-2xl font-semibold tabular-nums">{statsAll.totalRepsAllTime}</p>
-								</CardContent>
-							</Card>
-							<Card>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-medium">{t("viewCardSets")}</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-2xl font-semibold tabular-nums">{statsAll.totalSetsAllTime}</p>
-								</CardContent>
-							</Card>
-							{et.trackWeightInSets ? (
-								<Card>
-									<CardHeader className="pb-2">
-										<CardTitle className="text-sm font-medium">{t("viewCardTonnageAllTime")}</CardTitle>
-									</CardHeader>
-									<CardContent>
-										<p className="text-2xl font-semibold tabular-nums">
-											{formatTonnageMassDisplay(allTimeTonnage ?? 0, i18n.language)}
-										</p>
-									</CardContent>
-								</Card>
-							) : null}
-							<Card className={et.trackWeightInSets ? undefined : "sm:col-span-2"}>
-								<CardHeader className="pb-2">
-									<CardTitle className="text-sm font-medium">{t("viewCardActiveDays")}</CardTitle>
-								</CardHeader>
-								<CardContent>
-									<p className="text-2xl font-semibold tabular-nums">{statsAll.activeDaysCount}</p>
-								</CardContent>
-							</Card>
-						</div>
-					</div>
-				</div>
+				<ExerciseDetailStatsSection
+					t={t}
+					language={i18n.language}
+					trackWeightInSets={et.trackWeightInSets}
+					todaySetCount={todaySetCount}
+					todayReps={todayReps}
+					todayTonnage={todayTonnage}
+					totalRepsAllTime={statsAll.totalRepsAllTime}
+					totalSetsAllTime={statsAll.totalSetsAllTime}
+					activeDaysCount={statsAll.activeDaysCount}
+					allTimeTonnage={allTimeTonnage}
+				/>
 			) : null}
 
 			<div className="flex flex-wrap gap-2">
@@ -282,20 +201,12 @@ export function ExercisePage() {
 				</Button>
 			</div>
 
-			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>{t("deleteExerciseDialogTitle")}</AlertDialogTitle>
-						<AlertDialogDescription>{t("deleteExerciseDialogDescription")}</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel type="button">{t("cancel")}</AlertDialogCancel>
-						<Button type="button" variant="destructive" onClick={() => void handleConfirmDelete()}>
-							{t("deleteExerciseConfirm")}
-						</Button>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			<ExerciseDeleteDialog
+				open={deleteDialogOpen}
+				onOpenChange={setDeleteDialogOpen}
+				onConfirmDelete={handleConfirmDelete}
+				t={t}
+			/>
 		</div>
 	);
 }

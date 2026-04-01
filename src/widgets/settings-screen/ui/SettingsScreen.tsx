@@ -1,104 +1,19 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { usePushlogStore } from "@/entities/pushup";
 import { TimezoneSelect } from "@/features/set-timezone";
 import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
-import { readAnalyticsGoalsEnabled, writeAnalyticsGoalsEnabled } from "@/shared/lib/analytics-goals-preference";
 import { clearClientStoragePreferences } from "@/shared/lib/clear-client-storage";
 import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
-import {
-	getThemePreference,
-	setThemePreference,
-	THEME_CHANGE_EVENT,
-	type ThemeChangeDetail,
-	type ThemePreference,
-} from "@/shared/lib/theme";
 import { TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
-import { cn } from "@/shared/lib/utils";
 import { SETTINGS_SCREEN_NS } from "../translations";
-
-function AnalyticsGoalsRow() {
-	const { t } = useTranslation(SETTINGS_SCREEN_NS);
-	const [enabled, setEnabled] = useState(() => readAnalyticsGoalsEnabled());
-
-	return (
-		<div className="border-border/50 text-muted-foreground rounded-md border border-dashed px-3 py-2.5">
-			<div className="flex items-start justify-between gap-3">
-				<div className="min-w-0 space-y-0.5">
-					<p className="text-xs leading-snug">{t("analyticsGoalsLabel")}</p>
-					<p className="text-[11px] leading-snug opacity-90">{t("analyticsGoalsHint")}</p>
-				</div>
-				<Switch
-					size="sm"
-					className="shrink-0"
-					checked={enabled}
-					onCheckedChange={(v) => {
-						if (!v) {
-							pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsAnalyticsToggle, { enabled: 0 });
-							writeAnalyticsGoalsEnabled(false);
-						} else {
-							writeAnalyticsGoalsEnabled(true);
-							pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsAnalyticsToggle, { enabled: 1 });
-						}
-						setEnabled(v);
-					}}
-					aria-label={t("analyticsGoalsLabel")}
-				/>
-			</div>
-		</div>
-	);
-}
-
-function ThemePreferenceSelect({ labelId }: { labelId: string }) {
-	const { t } = useTranslation(SETTINGS_SCREEN_NS);
-	const [preference, setPreference] = useState<ThemePreference>(() => getThemePreference());
-
-	useEffect(() => {
-		const onChange = (e: Event) => {
-			const ce = e as CustomEvent<ThemeChangeDetail>;
-			if (ce.detail?.preference) setPreference(ce.detail.preference);
-		};
-		window.addEventListener(THEME_CHANGE_EVENT, onChange);
-		return () => window.removeEventListener(THEME_CHANGE_EVENT, onChange);
-	}, []);
-
-	return (
-		<Select
-			value={preference}
-			onValueChange={(v) => {
-				if (v !== "system" && v !== "light" && v !== "dark") return;
-				setThemePreference(v);
-				setPreference(v);
-			}}
-		>
-			<SelectTrigger id="theme-pref-select" aria-labelledby={labelId} className="max-w-full min-w-0 w-full">
-				<SelectValue />
-			</SelectTrigger>
-			<SelectContent>
-				<SelectItem value="system">{t("themeSystem")}</SelectItem>
-				<SelectItem value="light">{t("themeLight")}</SelectItem>
-				<SelectItem value="dark">{t("themeDark")}</SelectItem>
-			</SelectContent>
-		</Select>
-	);
-}
+import { AnalyticsGoalsRow } from "./AnalyticsGoalsRow";
+import { ConfirmDangerRow } from "./ConfirmDangerRow";
+import { SettingsAboutFooter } from "./SettingsAboutFooter";
+import { ThemePreferenceSelect } from "./ThemePreferenceSelect";
 
 export function SettingsScreen() {
 	const { t } = useTranslation(SETTINGS_SCREEN_NS);
@@ -221,94 +136,6 @@ export function SettingsScreen() {
 			</Card>
 
 			<SettingsAboutFooter />
-		</div>
-	);
-}
-
-function displayAppVersion(raw: string): string {
-	if (raw.startsWith("v")) {
-		return raw.slice(1);
-	}
-	return raw;
-}
-
-function SettingsAboutFooter() {
-	const { t } = useTranslation(SETTINGS_SCREEN_NS);
-	const versionRaw = import.meta.env.VITE_APP_VERSION;
-	const version = displayAppVersion(versionRaw);
-	const repoUrl = import.meta.env.VITE_REPO_URL.trim() ?? "https://github.com/redfur/pushlog";
-
-	return (
-		<div className="text-center text-muted-foreground/80 text-xs">
-			<div className="space-y-1 leading-relaxed">
-				<p>
-					{t("aboutVersion", { version })}
-					{repoUrl ? (
-						<>
-							{" — "}
-							<a
-								href={repoUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="font-medium underline-offset-4 hover:underline text-xs"
-							>
-								{t("aboutRepository")}
-							</a>
-						</>
-					) : null}
-				</p>
-			</div>
-		</div>
-	);
-}
-
-type ConfirmDangerRowProps = {
-	triggerLabel: string;
-	title: string;
-	body: string;
-	description: string;
-	confirmLabel: string;
-	cancelLabel: string;
-	onConfirm: () => void | Promise<void>;
-};
-
-function ConfirmDangerRow({
-	triggerLabel,
-	title,
-	body,
-	description,
-	confirmLabel,
-	cancelLabel,
-	onConfirm,
-}: ConfirmDangerRowProps) {
-	return (
-		<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-			<div className="min-w-0 flex-1">
-				<p className="text-sm font-medium">{triggerLabel}</p>
-				<p className="text-muted-foreground mt-0.5 text-xs leading-snug">{description}</p>
-			</div>
-			<AlertDialog>
-				<AlertDialogTrigger asChild>
-					<Button type="button" variant="destructive" className="shrink-0">
-						{triggerLabel}
-					</Button>
-				</AlertDialogTrigger>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>{title}</AlertDialogTitle>
-						<AlertDialogDescription>{body}</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-						<AlertDialogAction
-							className={cn(buttonVariants({ variant: "destructive" }))}
-							onClick={() => void onConfirm()}
-						>
-							{confirmLabel}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
 		</div>
 	);
 }

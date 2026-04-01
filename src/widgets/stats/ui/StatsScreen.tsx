@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	computeStats,
 	lastNDaysInclusive,
@@ -17,6 +16,7 @@ import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit } from "@/shared/lib/format-weight-kg";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
+import { StatsLoadingSkeleton } from "./StatsLoadingSkeleton";
 import { StatsTonnageTrendCharts } from "./StatsTonnageTrendCharts";
 import { StatsTrendCharts } from "./StatsTrendCharts";
 
@@ -48,19 +48,7 @@ export function StatsScreen() {
 	}, [exerciseTypesById]);
 
 	if (!hydrated) {
-		return (
-			<div className="flex flex-col gap-4 py-4">
-				<Skeleton className="h-8 w-48" />
-				<div className="grid gap-3 sm:grid-cols-2">
-					<Skeleton className="h-24 rounded-lg" />
-					<Skeleton className="h-24 rounded-lg" />
-					<Skeleton className="h-24 rounded-lg" />
-					<Skeleton className="h-24 rounded-lg" />
-				</div>
-				<Skeleton className="h-24 w-full rounded-lg" />
-				<Skeleton className="h-56 w-full rounded-lg" />
-			</div>
-		);
+		return <StatsLoadingSkeleton variant="full" />;
 	}
 
 	return (

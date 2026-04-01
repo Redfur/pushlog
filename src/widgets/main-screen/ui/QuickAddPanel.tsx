@@ -25,10 +25,7 @@ type Props = {
 	trackWeight: boolean;
 	/** Активный тип для черновика в localStorage. */
 	exerciseTypeId: string;
-	addReps: (
-		reps: number,
-		opts?: { weightKg?: number; exerciseTypeId?: string },
-	) => void;
+	addReps: (reps: number, opts?: { weightKg?: number; exerciseTypeId?: string }) => void;
 };
 
 function parseDraftInt(draft: string): number {
