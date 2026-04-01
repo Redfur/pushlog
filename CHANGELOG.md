@@ -8,6 +8,8 @@
 
 ### Added
 
+- Pre-commit через Lefthook
+
 ### Changed
 
 ### Fixed
