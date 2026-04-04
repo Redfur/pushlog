@@ -8,6 +8,14 @@
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [1.0.4] - 2026-04-05
+
+### Added
+
 - Pre-commit через Lefthook
 
 ### Changed
