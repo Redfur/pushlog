@@ -15,7 +15,7 @@ import {
 } from "@/features/manage-exercises";
 import { ExerciseDailyGoalEditor, parseDailyGoalInput, SET_DAILY_GOAL_NS } from "@/features/set-daily-goal";
 import { isExerciseTypeUuid } from "@/shared/config/exercise-type-presets";
-import { PageHeader, PageHeaderBackLink, PageHeaderSkeleton } from "@/widgets/page-header";
+import { PageHeader, PageHeaderBackLink, PageHeaderSkeleton, ScreenBody } from "@/shared/layout";
 
 export function ExerciseEditPage() {
 	const { exerciseId: rawParam } = useParams<{ exerciseId: string }>();
@@ -87,23 +87,23 @@ export function ExerciseEditPage() {
 
 	if (!hydrated) {
 		return (
-			<div className="flex flex-col gap-4 py-4">
+			<ScreenBody variant="skeletonSticky">
 				<PageHeaderSkeleton showMedia={false} />
 				<Skeleton className="h-40 w-full rounded-lg" />
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	if (!validId || !et) {
 		return (
-			<div className="flex flex-col gap-4 py-4">
+			<ScreenBody gap="compact">
 				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("exerciseNotFound")} />
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
+		<ScreenBody gap="comfortable">
 			<PageHeader
 				leading={<PageHeaderBackLink to={`/exercises/${et.id}`} ariaLabel={t("backToExercise")} />}
 				title={t("editPageTitle")}
@@ -139,6 +139,6 @@ export function ExerciseEditPage() {
 					<Button type="submit">{t("save")}</Button>
 				</div>
 			</form>
-		</div>
+		</ScreenBody>
 	);
 }

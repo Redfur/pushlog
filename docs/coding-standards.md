@@ -35,6 +35,7 @@ src/
 ├── entities/           # Бизнес-сущности (в т.ч. Zustand store рядом с доменом, см. pushup)
 └── shared/             # Переиспользуемый код без бизнес-логики
     ├── lib/             # Утилиты, хелперы, injectTranslation
+    ├── layout/          # Каркас экрана: PageHeader, ScreenBody (импорт @/shared/layout)
     ├── api/             # API-клиент (если есть бэкенд)
     ├── config/          # Конфигурация
     └── i18n/            # Глобальные переводы (cancel, save и т.д.)

@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePushlogStore } from "@/entities/pushup";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
+import { PageHeader, ScreenBody } from "@/shared/layout";
 import { canLogSetsForDay } from "@/shared/lib/day-key";
 import { ExerciseQuickAddBlock } from "@/widgets/main-screen/ui/ExerciseQuickAddBlock";
-import { PageHeader } from "@/widgets/page-header";
 import { HOME_SCREEN_NS } from "../translations";
 import { HomeArchivedExercisesSection } from "./HomeArchivedExercisesSection";
 import { HomeTodayStatsCards } from "./HomeTodayStatsCards";
@@ -28,16 +28,16 @@ export function HomeScreen() {
 
 	if (!hydrated) {
 		return (
-			<div className="flex flex-col gap-4 py-4">
+			<ScreenBody variant="skeleton">
 				<Skeleton className="h-8 w-48" />
 				<Skeleton className="h-24 w-full rounded-lg" />
 				<Skeleton className="h-40 w-full rounded-lg" />
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
+		<ScreenBody gap="comfortable">
 			<PageHeader
 				title={t("title")}
 				actions={
@@ -58,6 +58,6 @@ export function HomeScreen() {
 			/>
 
 			<HomeArchivedExercisesSection />
-		</div>
+		</ScreenBody>
 	);
 }

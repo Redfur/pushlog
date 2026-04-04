@@ -17,9 +17,9 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
+import { PageHeader, PageHeaderBackLink, ScreenBody } from "@/shared/layout";
 import { bcp47FromI18nLang } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit, formatWeightKgDisplay } from "@/shared/lib/format-weight-kg";
-import { PageHeader, PageHeaderBackLink } from "@/widgets/page-header";
 import { StatsLoadingSkeleton } from "@/widgets/stats";
 import { STATS_NS } from "@/widgets/stats/translations";
 import { StatsHeatmap } from "@/widgets/stats/ui/StatsHeatmap";
@@ -67,17 +67,17 @@ export function StatsExercisePage() {
 
 	if (!validId || !et || !stats) {
 		return (
-			<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
+			<ScreenBody gap="compact">
 				<PageHeader
 					leading={<PageHeaderBackLink to="/stats" ariaLabel={t("backToStats")} />}
 					title={t("exerciseNotFound")}
 				/>
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
+		<ScreenBody gap="compact">
 			<PageHeader
 				leading={<PageHeaderBackLink to="/stats" ariaLabel={t("backToStats")} />}
 				media={
@@ -174,6 +174,6 @@ export function StatsExercisePage() {
 				<StatsTonnageTrendCharts sets={setsForType} todayKey={todayKey} timeZone={timeZone} barFill={accent} />
 			) : null}
 			<StatsHeatmap sets={sets} todayKey={todayKey} timeZone={timeZone} exerciseTypeIdFilter={validId} />
-		</div>
+		</ScreenBody>
 	);
 }

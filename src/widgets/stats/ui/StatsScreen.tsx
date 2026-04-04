@@ -12,9 +12,9 @@ import {
 import { ExerciseTypeIcon } from "@/features/select-exercise";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
+import { PageHeader, ScreenBody } from "@/shared/layout";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit } from "@/shared/lib/format-weight-kg";
-import { PageHeader } from "@/widgets/page-header";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
 import { StatsLoadingSkeleton } from "./StatsLoadingSkeleton";
@@ -53,7 +53,7 @@ export function StatsScreen() {
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
+		<ScreenBody gap="compact">
 			<PageHeader title={t("title")} />
 
 			<div>
@@ -181,6 +181,6 @@ export function StatsScreen() {
 			<StatsTrendCharts sets={sets} todayKey={todayKey} timeZone={timeZone} />
 			<StatsTonnageTrendCharts sets={sets} todayKey={todayKey} timeZone={timeZone} />
 			<StatsHeatmap sets={sets} todayKey={todayKey} timeZone={timeZone} />
-		</div>
+		</ScreenBody>
 	);
 }

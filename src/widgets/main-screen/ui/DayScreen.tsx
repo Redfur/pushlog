@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterSetsByDayKey, usePushlogStore } from "@/entities/pushup";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
+import { PageHeader, ScreenBody } from "@/shared/layout";
 import { canLogSetsForDay, type DayKey, offsetDayKey } from "@/shared/lib/day-key";
 import { bcp47FromI18nLang, formatDayKeyFriendly } from "@/shared/lib/format-day";
 import { MAIN_SCREEN_NS } from "../translations";
@@ -38,16 +39,16 @@ export function DayScreen({ dayKey }: Props) {
 
 	if (!hydrated) {
 		return (
-			<div className="flex flex-col gap-4 py-4">
+			<ScreenBody variant="skeleton">
 				<Skeleton className="h-24 w-full rounded-lg" />
 				<Skeleton className="h-32 w-full rounded-lg" />
 				<Skeleton className="h-40 w-full rounded-lg" />
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
+		<ScreenBody gap="comfortable">
 			<h1 className="sr-only">
 				{isToday
 					? t("title")
@@ -55,7 +56,7 @@ export function DayScreen({ dayKey }: Props) {
 						? t("titleYesterday")
 						: t("titleDay", { date: formatDayKeyFriendly(dayKey, locale) })}
 			</h1>
-			<DayNavigation dayKey={dayKey} timeZone={timeZone} />
+			<PageHeader centerContent={<DayNavigation dayKey={dayKey} timeZone={timeZone} />} />
 			<DayProgress sets={sets} dayKey={dayKey} isToday={isToday} isYesterday={isYesterday} />
 			<DayTonnageCards sets={sets} dayKey={dayKey} todayKey={todayKey} timeZone={timeZone} />
 			<ExerciseQuickAddBlock
@@ -64,6 +65,6 @@ export function DayScreen({ dayKey }: Props) {
 				hasActiveExerciseTypes={hasActiveExerciseTypes}
 			/>
 			<DaySetsList sets={daySets} />
-		</div>
+		</ScreenBody>
 	);
 }

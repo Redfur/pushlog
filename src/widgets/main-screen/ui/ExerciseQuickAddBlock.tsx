@@ -61,7 +61,7 @@ export function ExerciseQuickAddBlock({ dayKey, dayAllowsLogging, hasActiveExerc
 				<CardTitle>{t("quickAddCardTitle", { name: selectedName ?? "" })}</CardTitle>
 				<CardDescription>{t("quickAddTabsHint")}</CardDescription>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-4 pt-4">
+			<CardContent className="flex flex-col gap-4">
 				<div className="flex flex-wrap gap-2" role="tablist" aria-label={t("quickAddTabsAria")}>
 					{activeSorted.map((et) => {
 						const selected = et.id === effectivePreferredId;

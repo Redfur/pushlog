@@ -9,7 +9,7 @@
 | Widgets | `src/widgets/` | `home-screen`, `main-screen` (день), `stats`, `settings-screen` |
 | Features | `src/features/` | `add-set`, `remove-set`, `select-exercise`, `set-daily-goal`, `manage-exercises`, `set-timezone` |
 | Entities | `src/entities/` | Домен: `pushup` (типы, Zustand store, `computeStats` / `computeStreak` / фильтры) |
-| Shared | `src/shared/` | `lib/` (дата, timezone, id, **storage**), `config/` (пресеты иконок/цветов, quick-add), `i18n` |
+| Shared | `src/shared/` | `lib/` (дата, timezone, id, **storage**), `config/`, `i18n`, **`layout/`** (липкая шапка **PageHeader**, **ScreenBody**, **STICKY_PAGE_HEADER_SURFACE**, скелетон и кнопка «назад» — импорт `@/shared/layout`) |
 | UI-kit | `src/components/ui/` | shadcn — без бизнес-логики |
 
 Перекрёстные хуки приложения (например «сегодня» по таймзоне store): `src/hooks/` — не FSD-слой, но используются страницами/виджетами.
@@ -20,6 +20,7 @@
 
 | Слайс | Путь |
 |-------|------|
+| Каркас экрана (шапка, тело) | `src/shared/layout/` — `@/shared/layout` |
 | Сущность упражнения / отжимания | `src/entities/pushup/` (`model/types.ts`, store, при необходимости `ui/`) |
 | Добавление подхода | `src/features/add-set/` |
 | Удаление подхода | `src/features/remove-set/` |

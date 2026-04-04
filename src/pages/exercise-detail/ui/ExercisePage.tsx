@@ -32,7 +32,7 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
-import { PageHeader, PageHeaderBackLink } from "@/widgets/page-header";
+import { PageHeader, PageHeaderBackLink, ScreenBody } from "@/shared/layout";
 import { ExerciseDeleteDialog } from "./ExerciseDeleteDialog";
 import { ExerciseDetailStatsSection } from "./ExerciseDetailStatsSection";
 import { ExercisePageSkeleton } from "./ExercisePageSkeleton";
@@ -124,7 +124,7 @@ export function ExercisePage() {
 
 	if (isNew) {
 		return (
-			<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
+			<ScreenBody gap="comfortable">
 				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("newPageTitle")} />
 				<form
 					className="flex flex-col gap-6"
@@ -155,15 +155,15 @@ export function ExercisePage() {
 						<Button type="submit">{t("save")}</Button>
 					</div>
 				</form>
-			</div>
+			</ScreenBody>
 		);
 	}
 
 	if (!validId || !et) {
 		return (
-			<div className="flex flex-col gap-4 py-4">
+			<ScreenBody gap="compact">
 				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("exerciseNotFound")} />
-			</div>
+			</ScreenBody>
 		);
 	}
 
@@ -182,7 +182,7 @@ export function ExercisePage() {
 	}
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
+		<ScreenBody gap="comfortable">
 			<PageHeader
 				leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />}
 				media={
@@ -249,6 +249,6 @@ export function ExercisePage() {
 				onConfirmDelete={handleConfirmDelete}
 				t={t}
 			/>
-		</div>
+		</ScreenBody>
 	);
 }

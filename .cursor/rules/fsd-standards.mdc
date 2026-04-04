@@ -33,7 +33,7 @@ app/ → pages/ → widgets/ → features/ → entities/ → shared
 - **features/** — save-note, create-note, edit-line (действия)
 - **widgets/** — note-sidebar, notebook-editor (крупные блоки)
 - **pages/** — notebook (страница блокнота)
-- **shared/** — lib, config, i18n
+- **shared/** — lib, **layout** (шапка экрана, ScreenBody — `@/shared/layout`), config, i18n
 
 ## Публичный API
 

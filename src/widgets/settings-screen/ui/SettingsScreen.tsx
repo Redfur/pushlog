@@ -5,11 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { usePushlogStore } from "@/entities/pushup";
 import { TimezoneSelect } from "@/features/set-timezone";
 import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
+import { PageHeader, ScreenBody } from "@/shared/layout";
 import { clearClientStoragePreferences } from "@/shared/lib/clear-client-storage";
 import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
 import { TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
-import { PageHeader } from "@/widgets/page-header";
 import { SETTINGS_SCREEN_NS } from "../translations";
 import { AnalyticsGoalsRow } from "./AnalyticsGoalsRow";
 import { ConfirmDangerRow } from "./ConfirmDangerRow";
@@ -41,7 +41,7 @@ export function SettingsScreen() {
 	};
 
 	return (
-		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
+		<ScreenBody gap="compact">
 			<PageHeader title={t("title")} />
 
 			<Card>
@@ -137,6 +137,6 @@ export function SettingsScreen() {
 			</Card>
 
 			<SettingsAboutFooter />
-		</div>
+		</ScreenBody>
 	);
 }
