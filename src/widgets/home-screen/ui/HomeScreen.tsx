@@ -8,7 +8,7 @@ import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { canLogSetsForDay } from "@/shared/lib/day-key";
 import { ExerciseQuickAddBlock } from "@/widgets/main-screen/ui/ExerciseQuickAddBlock";
 import { HOME_SCREEN_NS } from "../translations";
-import { HomeExerciseList } from "./HomeExerciseList";
+import { HomeArchivedExercisesSection } from "./HomeArchivedExercisesSection";
 import { HomeTodayStatsCards } from "./HomeTodayStatsCards";
 
 export function HomeScreen() {
@@ -51,15 +51,7 @@ export function HomeScreen() {
 				hasActiveExerciseTypes={hasActiveExerciseTypes}
 			/>
 
-			<div>
-				<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-					<h2 className="text-muted-foreground text-sm font-medium">{t("exercisesSection")}</h2>
-					<Button type="button" variant="outline" size="sm" asChild>
-						<Link to="/exercises/new">{t("addExercise")}</Link>
-					</Button>
-				</div>
-				<HomeExerciseList />
-			</div>
+			<HomeArchivedExercisesSection />
 		</div>
 	);
 }

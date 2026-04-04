@@ -13,16 +13,19 @@ import {
 	MANAGE_EXERCISES_NS,
 	normalizeExerciseTypeDraft,
 } from "@/features/manage-exercises";
-import { ExerciseGoalFields } from "@/features/set-daily-goal";
+import { ExerciseDailyGoalEditor, parseDailyGoalInput, SET_DAILY_GOAL_NS } from "@/features/set-daily-goal";
 import { isExerciseTypeUuid } from "@/shared/config/exercise-type-presets";
 
 export function ExerciseEditPage() {
 	const { exerciseId: rawParam } = useParams<{ exerciseId: string }>();
 	const navigate = useNavigate();
 	const { t } = useTranslation(MANAGE_EXERCISES_NS);
+	const { t: tGoal } = useTranslation(SET_DAILY_GOAL_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 	const updateExerciseType = usePushlogStore((s) => s.updateExerciseType);
+	const setDailyGoal = usePushlogStore((s) => s.setDailyGoal);
+	const clearDailyGoal = usePushlogStore((s) => s.clearDailyGoal);
 
 	const validId = rawParam && isExerciseTypeUuid(rawParam) ? rawParam : null;
 	const et = validId ? exerciseTypesById[validId] : undefined;
@@ -31,13 +34,24 @@ export function ExerciseEditPage() {
 	const [hexError, setHexError] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (et) {
-			setDraft(exerciseTypeDraftFromPersisted(et));
-			setHexError(null);
-		}
-	}, [et]);
+		if (!hydrated || !validId) return;
+		const row = usePushlogStore.getState().exerciseTypesById[validId];
+		if (!row) return;
+		const g = usePushlogStore.getState().goalsByExercise[validId];
+		setDraft({
+			...exerciseTypeDraftFromPersisted(row),
+			dailyGoalInput: g != null ? String(g.targetRepsPerDay) : "",
+		});
+		setHexError(null);
+	}, [hydrated, validId]);
 
 	async function handleSave() {
+		const parsedGoal = parseDailyGoalInput(draft.dailyGoalInput);
+		if (parsedGoal.kind === "invalid") {
+			toast.error(tGoal("goalInputInvalid"));
+			return;
+		}
+
 		const normalized = normalizeExerciseTypeDraft(draft, t("hexInvalid"));
 		if (!normalized.ok) {
 			if (normalized.error) setHexError(normalized.error);
@@ -45,13 +59,29 @@ export function ExerciseEditPage() {
 		}
 		setHexError(null);
 		if (!validId) return;
+
 		const ok = await updateExerciseType(validId, normalized.value);
-		if (ok) {
-			toast.success(t("toastExerciseSaved"));
-			navigate(`/exercises/${validId}`, { replace: true });
-		} else {
+		if (!ok) {
 			toast.error(t("toastExerciseSaveFailed"));
+			return;
 		}
+
+		if (et && !et.archivedAt) {
+			const hadGoal = validId in usePushlogStore.getState().goalsByExercise;
+			if (parsedGoal.kind === "empty") {
+				if (hadGoal) await clearDailyGoal(validId);
+			} else {
+				await setDailyGoal(parsedGoal.reps, validId);
+			}
+			const err = usePushlogStore.getState().lastError;
+			if (err) {
+				toast.error(tGoal("toastGoalPersistFailed"));
+				return;
+			}
+		}
+
+		toast.success(t("toastExerciseSaved"));
+		navigate(`/exercises/${validId}`, { replace: true });
 	}
 
 	if (!hydrated) {
@@ -83,23 +113,39 @@ export function ExerciseEditPage() {
 				</Button>
 			</div>
 
-			<div className="flex flex-col gap-4">
-				<ExerciseTypeEditorFields
-					draft={draft}
-					onDraftChange={setDraft}
-					hexError={hexError}
-					onHexErrorClear={() => setHexError(null)}
-					t={t}
-					nameInputId="ex-edit-name"
-					iconSelectId="ex-edit-icon"
-					trackWeightSwitchId="ex-edit-track-weight"
-				/>
-				<Button type="button" className="w-fit" onClick={() => void handleSave()}>
-					{t("save")}
-				</Button>
-			</div>
+			<form
+				className="flex flex-col gap-6"
+				onSubmit={(e) => {
+					e.preventDefault();
+					void handleSave();
+				}}
+			>
+				<div className="flex flex-col gap-4">
+					<ExerciseTypeEditorFields
+						draft={draft}
+						onDraftChange={setDraft}
+						hexError={hexError}
+						onHexErrorClear={() => setHexError(null)}
+						t={t}
+						nameInputId="ex-edit-name"
+						iconSelectId="ex-edit-icon"
+						trackWeightSwitchId="ex-edit-track-weight"
+					/>
+					<ExerciseDailyGoalEditor
+						value={draft.dailyGoalInput}
+						onChange={(v) => setDraft((d) => ({ ...d, dailyGoalInput: v }))}
+						inputId="ex-edit-daily-goal"
+						enabled={!et.archivedAt}
+					/>
+				</div>
 
-			<ExerciseGoalFields exerciseTypeId={et.id} enabled={!et.archivedAt} />
+				<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+					<Button type="submit">{t("save")}</Button>
+					<Button type="button" variant="outline" asChild>
+						<Link to={`/exercises/${et.id}`}>{t("backToExercise")}</Link>
+					</Button>
+				</div>
+			</form>
 		</div>
 	);
 }

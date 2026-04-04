@@ -7,7 +7,6 @@ export const homeScreenTranslations = {
 		todayAllTypesCardTitle: "Все упражнения",
 		cardSets: "Подходов",
 		cardReps: "Повторений",
-		exercisesSection: "Упражнения",
 		addExercise: "Добавить упражнение",
 		archivedSection: "В архиве",
 		archivedCount: "{{count}}",

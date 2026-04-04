@@ -18,6 +18,7 @@ import {
 	normalizeExerciseTypeDraft,
 } from "@/features/manage-exercises";
 import { ExerciseTypeIcon } from "@/features/select-exercise";
+import { ExerciseDailyGoalEditor, parseDailyGoalInput, SET_DAILY_GOAL_NS } from "@/features/set-daily-goal";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import {
 	isExerciseTypeUuid,
@@ -34,10 +35,12 @@ export function ExercisePage() {
 	const rawParam = paramId ?? (loc.pathname === "/exercises/new" ? "new" : undefined);
 	const navigate = useNavigate();
 	const { t, i18n } = useTranslation(MANAGE_EXERCISES_NS);
+	const { t: tGoal } = useTranslation(SET_DAILY_GOAL_NS);
 	const hydrated = usePushlogStore((s) => s.hydrated);
 	const sets = usePushlogStore((s) => s.sets);
 	const exerciseTypesById = usePushlogStore((s) => s.exerciseTypesById);
 	const addExerciseType = usePushlogStore((s) => s.addExerciseType);
+	const setDailyGoal = usePushlogStore((s) => s.setDailyGoal);
 	const archiveExerciseType = usePushlogStore((s) => s.archiveExerciseType);
 	const unarchiveExerciseType = usePushlogStore((s) => s.unarchiveExerciseType);
 	const deleteExerciseType = usePushlogStore((s) => s.deleteExerciseType);
@@ -82,6 +85,12 @@ export function ExercisePage() {
 	}, [sets, validId, exerciseTypesById]);
 
 	async function handleSaveNew() {
+		const parsedGoal = parseDailyGoalInput(draft.dailyGoalInput);
+		if (parsedGoal.kind === "invalid") {
+			toast.error(tGoal("goalInputInvalid"));
+			return;
+		}
+
 		const normalized = normalizeExerciseTypeDraft(draft, t("hexInvalid"));
 		if (!normalized.ok) {
 			if (normalized.error) setHexError(normalized.error);
@@ -89,7 +98,16 @@ export function ExercisePage() {
 		}
 		setHexError(null);
 		const id = await addExerciseType(normalized.value);
-		if (id) navigate(`/exercises/${id}`, { replace: true });
+		if (!id) return;
+
+		if (parsedGoal.kind === "valid") {
+			await setDailyGoal(parsedGoal.reps, id);
+			if (usePushlogStore.getState().lastError) {
+				toast.error(tGoal("toastGoalPersistFailed"));
+			}
+		}
+
+		navigate(`/exercises/${id}`, { replace: true });
 	}
 
 	if (!hydrated) {
@@ -100,24 +118,38 @@ export function ExercisePage() {
 		return (
 			<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
 				<h1 className="text-xl font-semibold">{t("newPageTitle")}</h1>
-				<ExerciseTypeEditorFields
-					draft={draft}
-					onDraftChange={setDraft}
-					hexError={hexError}
-					onHexErrorClear={() => setHexError(null)}
-					t={t}
-					nameInputId="ex-new-name"
-					iconSelectId="ex-new-icon"
-					trackWeightSwitchId="ex-new-track-weight"
-				/>
-				<div className="flex flex-wrap gap-2">
-					<Button type="button" variant="outline" asChild>
-						<Link to="/">{t("backHome")}</Link>
-					</Button>
-					<Button type="button" onClick={() => void handleSaveNew()}>
-						{t("save")}
-					</Button>
-				</div>
+				<form
+					className="flex flex-col gap-6"
+					onSubmit={(e) => {
+						e.preventDefault();
+						void handleSaveNew();
+					}}
+				>
+					<div className="flex flex-col gap-4">
+						<ExerciseTypeEditorFields
+							draft={draft}
+							onDraftChange={setDraft}
+							hexError={hexError}
+							onHexErrorClear={() => setHexError(null)}
+							t={t}
+							nameInputId="ex-new-name"
+							iconSelectId="ex-new-icon"
+							trackWeightSwitchId="ex-new-track-weight"
+						/>
+						<ExerciseDailyGoalEditor
+							value={draft.dailyGoalInput}
+							onChange={(v) => setDraft((d) => ({ ...d, dailyGoalInput: v }))}
+							inputId="ex-new-daily-goal"
+							descriptionHint="optionalHint"
+						/>
+					</div>
+					<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+						<Button type="submit">{t("save")}</Button>
+						<Button type="button" variant="outline" asChild>
+							<Link to="/">{t("backHome")}</Link>
+						</Button>
+					</div>
+				</form>
 			</div>
 		);
 	}

@@ -16,6 +16,8 @@ export type ExerciseTypeDraft = {
 	colorKind: "preset" | "custom";
 	colorValue: string;
 	trackWeightInSets: boolean;
+	/** Строка из поля «повторений в день»; пусто — цель не задана при сохранении. */
+	dailyGoalInput: string;
 };
 
 export function defaultExerciseTypeDraft(): ExerciseTypeDraft {
@@ -27,6 +29,7 @@ export function defaultExerciseTypeDraft(): ExerciseTypeDraft {
 		colorKind: "preset",
 		colorValue: EXERCISE_COLOR_PRESET_HEX[0],
 		trackWeightInSets: false,
+		dailyGoalInput: "",
 	};
 }
 
@@ -42,6 +45,7 @@ export function exerciseTypeDraftFromPersisted(et: PersistedExerciseType): Exerc
 				? resolvePresetColorValueToHex(et.colorValue)
 				: et.colorValue,
 		trackWeightInSets: et.trackWeightInSets,
+		dailyGoalInput: "",
 	};
 }
 

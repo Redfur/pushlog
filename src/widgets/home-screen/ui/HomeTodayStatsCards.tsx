@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -114,6 +115,15 @@ export function HomeTodayStatsCards({ todayKey }: Props) {
 						</Link>
 					);
 				})}
+
+				<Link to="/exercises/new" className="block h-full min-h-0">
+					<Card className="hover:bg-accent/40 flex h-full min-h-[8rem] flex-col items-center justify-center gap-2 border-dashed transition-colors">
+						<CardContent className="flex flex-col items-center justify-center gap-2 py-6">
+							<Plus className="text-muted-foreground size-8 shrink-0" aria-hidden />
+							<p className="text-muted-foreground text-center text-sm font-medium">{t("addExercise")}</p>
+						</CardContent>
+					</Card>
+				</Link>
 			</div>
 		</div>
 	);
