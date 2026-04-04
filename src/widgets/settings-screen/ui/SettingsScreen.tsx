@@ -82,19 +82,7 @@ export function SettingsScreen() {
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm font-medium">{t("regionSection")}</CardTitle>
 				</CardHeader>
-				<CardContent className="flex flex-col gap-4">
-					<p className="text-muted-foreground text-xs leading-snug">
-						{t("exercisesCatalogHint")}{" "}
-						<Link to="/" className="text-primary font-medium underline-offset-4 hover:underline">
-							{t("exercisesCatalogLink")}
-						</Link>
-					</p>
-					<p className="text-muted-foreground text-xs leading-snug">
-						{t("dailyGoalHint")}{" "}
-						<Link to="/" className="text-primary font-medium underline-offset-4 hover:underline">
-							{t("dailyGoalLink")}
-						</Link>
-					</p>
+				<CardContent>
 					<TimezoneSelect />
 				</CardContent>
 			</Card>

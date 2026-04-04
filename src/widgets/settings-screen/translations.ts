@@ -10,9 +10,7 @@ export const settingsScreenTranslations = {
 		languageSection: "Язык",
 		languageCurrent: "Русский",
 		languageHint: "Другие языки интерфейса запланированы; пока доступен только русский.",
-		regionSection: "Регион и цели",
-		exercisesCatalogHint: "Список и настройка типов упражнений — на главной странице и в карточке каждого типа.",
-		exercisesCatalogLink: "Перейти на главную",
+		regionSection: "Регион",
 		dailyGoalHint:
 			"Дневную цель по типу можно задать при создании упражнения или в режиме редактирования (главная → тип → «Редактировать»).",
 		dailyGoalLink: "На главную",
