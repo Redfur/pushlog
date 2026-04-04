@@ -9,6 +9,7 @@ import { clearClientStoragePreferences } from "@/shared/lib/clear-client-storage
 import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
 import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
 import { TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
+import { PageHeader } from "@/widgets/page-header";
 import { SETTINGS_SCREEN_NS } from "../translations";
 import { AnalyticsGoalsRow } from "./AnalyticsGoalsRow";
 import { ConfirmDangerRow } from "./ConfirmDangerRow";
@@ -41,7 +42,7 @@ export function SettingsScreen() {
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
-			<h1 className="text-xl font-semibold">{t("title")}</h1>
+			<PageHeader title={t("title")} />
 
 			<Card>
 				<CardHeader className="pb-2">

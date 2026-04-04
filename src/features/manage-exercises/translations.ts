@@ -40,6 +40,7 @@ export const manageExercisesTranslations = {
 		backHome: "На главную",
 		backToExercise: "К упражнению",
 		editExercise: "Редактировать",
+		headerMoreActionsAria: "Ещё: подробная статистика и редактирование",
 		detailedStats: "Подробная статистика",
 		viewTodayTitle: "Сегодня",
 		viewAllTimeTitle: "За всё время",

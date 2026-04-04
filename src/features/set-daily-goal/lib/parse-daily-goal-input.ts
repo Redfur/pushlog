@@ -1,4 +1,4 @@
-export type ParsedDailyGoalInput = { kind: "empty" } | { kind: "valid"; reps: number } | { kind: "invalid" };
+type ParsedDailyGoalInput = { kind: "empty" } | { kind: "valid"; reps: number } | { kind: "invalid" };
 
 export function parseDailyGoalInput(raw: string): ParsedDailyGoalInput {
 	const trimmed = raw.trim();

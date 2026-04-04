@@ -14,6 +14,7 @@ import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { pickExerciseTypeIconVisual, resolveExerciseTypeColor } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang, formatDayKeyFull } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit } from "@/shared/lib/format-weight-kg";
+import { PageHeader } from "@/widgets/page-header";
 import { STATS_NS } from "../translations";
 import { StatsHeatmap } from "./StatsHeatmap";
 import { StatsLoadingSkeleton } from "./StatsLoadingSkeleton";
@@ -53,7 +54,7 @@ export function StatsScreen() {
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
-			<h1 className="text-xl font-semibold">{t("title")}</h1>
+			<PageHeader title={t("title")} />
 
 			<div>
 				<h2 className="text-muted-foreground mb-2 text-sm font-medium">{t("byExerciseSection")}</h2>

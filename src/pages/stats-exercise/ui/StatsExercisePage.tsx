@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	computeStatsForExerciseType,
@@ -20,6 +19,7 @@ import {
 } from "@/shared/config/exercise-type-presets";
 import { bcp47FromI18nLang } from "@/shared/lib/format-day";
 import { formatTonnageWithKgUnit, formatWeightKgDisplay } from "@/shared/lib/format-weight-kg";
+import { PageHeader, PageHeaderBackLink } from "@/widgets/page-header";
 import { StatsLoadingSkeleton } from "@/widgets/stats";
 import { STATS_NS } from "@/widgets/stats/translations";
 import { StatsHeatmap } from "@/widgets/stats/ui/StatsHeatmap";
@@ -68,33 +68,29 @@ export function StatsExercisePage() {
 	if (!validId || !et || !stats) {
 		return (
 			<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
-				<p className="text-muted-foreground text-sm">{t("exerciseNotFound")}</p>
-				<Button type="button" variant="outline" className="w-fit" asChild>
-					<Link to="/stats">{t("backToStats")}</Link>
-				</Button>
+				<PageHeader
+					leading={<PageHeaderBackLink to="/stats" ariaLabel={t("backToStats")} />}
+					title={t("exerciseNotFound")}
+				/>
 			</div>
 		);
 	}
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-4 py-4 duration-300">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div className="flex min-w-0 items-center gap-3">
+			<PageHeader
+				leading={<PageHeaderBackLink to="/stats" ariaLabel={t("backToStats")} />}
+				media={
 					<ExerciseTypeIcon
 						exerciseType={pickExerciseTypeIconVisual(et)}
 						className="size-9 shrink-0"
 						style={{ color: accent }}
 						aria-hidden
 					/>
-					<div className="min-w-0">
-						<h1 className="text-xl font-semibold">{et.name}</h1>
-						{et.archivedAt ? <p className="text-muted-foreground text-xs">{t("archivedBadge")}</p> : null}
-					</div>
-				</div>
-				<Button type="button" variant="ghost" size="sm" className="shrink-0" asChild>
-					<Link to="/stats">{t("backToStats")}</Link>
-				</Button>
-			</div>
+				}
+				title={et.name}
+				description={et.archivedAt ? t("archivedBadge") : undefined}
+			/>
 
 			<div className="grid gap-3 sm:grid-cols-2">
 				<Card>

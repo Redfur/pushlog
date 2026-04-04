@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeaderSkeleton } from "@/widgets/page-header";
 
 type Variant = "full" | "exercise";
 
@@ -10,7 +11,7 @@ export function StatsLoadingSkeleton({ variant = "full" }: Props) {
 	if (variant === "exercise") {
 		return (
 			<div className="flex flex-col gap-4 py-4">
-				<Skeleton className="h-8 w-56" />
+				<PageHeaderSkeleton />
 				<div className="grid gap-3 sm:grid-cols-2">
 					<Skeleton className="h-24 rounded-lg" />
 					<Skeleton className="h-24 rounded-lg" />

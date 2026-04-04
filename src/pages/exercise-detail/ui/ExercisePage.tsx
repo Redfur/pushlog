@@ -1,8 +1,15 @@
+import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	computeStatsForExerciseType,
 	filterSetsByDayKey,
@@ -25,6 +32,7 @@ import {
 	pickExerciseTypeIconVisual,
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
+import { PageHeader, PageHeaderBackLink } from "@/widgets/page-header";
 import { ExerciseDeleteDialog } from "./ExerciseDeleteDialog";
 import { ExerciseDetailStatsSection } from "./ExerciseDetailStatsSection";
 import { ExercisePageSkeleton } from "./ExercisePageSkeleton";
@@ -117,7 +125,7 @@ export function ExercisePage() {
 	if (isNew) {
 		return (
 			<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
-				<h1 className="text-xl font-semibold">{t("newPageTitle")}</h1>
+				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("newPageTitle")} />
 				<form
 					className="flex flex-col gap-6"
 					onSubmit={(e) => {
@@ -145,9 +153,6 @@ export function ExercisePage() {
 					</div>
 					<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
 						<Button type="submit">{t("save")}</Button>
-						<Button type="button" variant="outline" asChild>
-							<Link to="/">{t("backHome")}</Link>
-						</Button>
 					</div>
 				</form>
 			</div>
@@ -157,10 +162,7 @@ export function ExercisePage() {
 	if (!validId || !et) {
 		return (
 			<div className="flex flex-col gap-4 py-4">
-				<p className="text-muted-foreground text-sm">{t("exerciseNotFound")}</p>
-				<Button type="button" variant="outline" className="w-fit" asChild>
-					<Link to="/">{t("backHome")}</Link>
-				</Button>
+				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("exerciseNotFound")} />
 			</div>
 		);
 	}
@@ -181,27 +183,35 @@ export function ExercisePage() {
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div className="flex min-w-0 items-center gap-3">
+			<PageHeader
+				leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />}
+				media={
 					<ExerciseTypeIcon
 						exerciseType={pickExerciseTypeIconVisual(et)}
 						className="size-9 shrink-0"
 						style={{ color: accent }}
 						aria-hidden
 					/>
-					<div className="min-w-0">
-						<h1 className="text-xl font-semibold">{et.name}</h1>
-					</div>
-				</div>
-				<div className="flex flex-wrap items-center gap-2">
-					<Button type="button" size="sm" asChild>
-						<Link to={`/stats/exercise/${et.id}`}>{t("detailedStats")}</Link>
-					</Button>
-					<Button type="button" variant="outline" size="sm" asChild>
-						<Link to={`/exercises/${et.id}/edit`}>{t("editExercise")}</Link>
-					</Button>
-				</div>
-			</div>
+				}
+				title={et.name}
+				actions={
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button type="button" variant="outline" size="icon" aria-label={t("headerMoreActionsAria")}>
+								<MoreHorizontal className="size-5" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="min-w-48">
+							<DropdownMenuItem asChild>
+								<Link to={`/stats/exercise/${et.id}`}>{t("detailedStats")}</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild>
+								<Link to={`/exercises/${et.id}/edit`}>{t("editExercise")}</Link>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				}
+			/>
 
 			{statsAll ? (
 				<ExerciseDetailStatsSection

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COMMON_NS } from "@/shared/i18n";
+import { PageHeaderSkeleton } from "@/widgets/page-header";
 
 export function StatsRouteFallback() {
 	const { t } = useTranslation(COMMON_NS);
@@ -35,7 +36,7 @@ export function SettingsRouteFallback() {
 export function ExerciseRouteFallback() {
 	return (
 		<div className="flex flex-col gap-4 py-4">
-			<Skeleton className="h-8 w-48" />
+			<PageHeaderSkeleton showMedia={false} />
 			<Skeleton className="h-40 w-full rounded-lg" />
 		</div>
 	);

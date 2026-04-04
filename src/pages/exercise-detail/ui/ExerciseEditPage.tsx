@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,7 @@ import {
 } from "@/features/manage-exercises";
 import { ExerciseDailyGoalEditor, parseDailyGoalInput, SET_DAILY_GOAL_NS } from "@/features/set-daily-goal";
 import { isExerciseTypeUuid } from "@/shared/config/exercise-type-presets";
+import { PageHeader, PageHeaderBackLink, PageHeaderSkeleton } from "@/widgets/page-header";
 
 export function ExerciseEditPage() {
 	const { exerciseId: rawParam } = useParams<{ exerciseId: string }>();
@@ -87,7 +88,7 @@ export function ExerciseEditPage() {
 	if (!hydrated) {
 		return (
 			<div className="flex flex-col gap-4 py-4">
-				<Skeleton className="h-8 w-48" />
+				<PageHeaderSkeleton showMedia={false} />
 				<Skeleton className="h-40 w-full rounded-lg" />
 			</div>
 		);
@@ -96,22 +97,17 @@ export function ExerciseEditPage() {
 	if (!validId || !et) {
 		return (
 			<div className="flex flex-col gap-4 py-4">
-				<p className="text-muted-foreground text-sm">{t("exerciseNotFound")}</p>
-				<Button type="button" variant="outline" className="w-fit" asChild>
-					<Link to="/">{t("backHome")}</Link>
-				</Button>
+				<PageHeader leading={<PageHeaderBackLink to="/" ariaLabel={t("backHome")} />} title={t("exerciseNotFound")} />
 			</div>
 		);
 	}
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<h1 className="text-xl font-semibold">{t("editPageTitle")}</h1>
-				<Button type="button" variant="outline" size="sm" asChild>
-					<Link to={`/exercises/${et.id}`}>{t("backToExercise")}</Link>
-				</Button>
-			</div>
+			<PageHeader
+				leading={<PageHeaderBackLink to={`/exercises/${et.id}`} ariaLabel={t("backToExercise")} />}
+				title={t("editPageTitle")}
+			/>
 
 			<form
 				className="flex flex-col gap-6"
@@ -141,9 +137,6 @@ export function ExerciseEditPage() {
 
 				<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
 					<Button type="submit">{t("save")}</Button>
-					<Button type="button" variant="outline" asChild>
-						<Link to={`/exercises/${et.id}`}>{t("backToExercise")}</Link>
-					</Button>
 				</div>
 			</form>
 		</div>

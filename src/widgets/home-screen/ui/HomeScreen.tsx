@@ -1,3 +1,4 @@
+import { Calendar } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -7,6 +8,7 @@ import { usePushlogStore } from "@/entities/pushup";
 import { useTodayDayKey } from "@/hooks/use-today-day-key";
 import { canLogSetsForDay } from "@/shared/lib/day-key";
 import { ExerciseQuickAddBlock } from "@/widgets/main-screen/ui/ExerciseQuickAddBlock";
+import { PageHeader } from "@/widgets/page-header";
 import { HOME_SCREEN_NS } from "../translations";
 import { HomeArchivedExercisesSection } from "./HomeArchivedExercisesSection";
 import { HomeTodayStatsCards } from "./HomeTodayStatsCards";
@@ -36,12 +38,16 @@ export function HomeScreen() {
 
 	return (
 		<div className="animate-in fade-in flex flex-col gap-6 py-4 duration-300">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<h1 className="text-xl font-semibold">{t("title")}</h1>
-				<Button type="button" variant="outline" size="sm" asChild>
-					<Link to="/day/today">{t("openDayCalendar")}</Link>
-				</Button>
-			</div>
+			<PageHeader
+				title={t("title")}
+				actions={
+					<Button type="button" variant="outline" size="icon" asChild>
+						<Link to="/day/today" aria-label={t("openDayCalendar")} title={t("openDayCalendar")}>
+							<Calendar className="size-5" />
+						</Link>
+					</Button>
+				}
+			/>
 
 			<HomeTodayStatsCards todayKey={todayKey} />
 
