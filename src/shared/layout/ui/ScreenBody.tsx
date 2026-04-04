@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/shared/lib/utils";
 
-export type ScreenBodyGap = "compact" | "comfortable";
+type ScreenBodyGap = "compact" | "comfortable";
 
 type Props = {
 	children: ReactNode;
