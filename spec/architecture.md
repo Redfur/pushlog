@@ -30,6 +30,15 @@
 
 Публичный API каждого слайса — только через `index.ts`.
 
+## Правило размещения модальных окон
+
+- Утилитарные модалки (подтверждение действия, общий alert/confirm без доменной логики) размещаются в `src/shared/ui/modals/`.
+- Модалки с доменной логикой размещаются в своем слайсе:
+  - feature-уровень — в `src/features/<slice>/ui/`
+  - widget-уровень — в `src/widgets/<slice>/ui/modals/`
+- Внешнее использование — только через публичный API слайса (`index.ts`), либо через `shared/ui/modals` для утилитарных сценариев.
+- Глобальный провайдер модалок (`NiceModal.Provider`) подключается на уровне `app/providers`.
+
 ## State management: Zustand
 
 **Расположение:** `src/entities/pushup/model/pushlog-store.ts` (store рядом с доменом, чтобы слой `features` не импортировал `app`).

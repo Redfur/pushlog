@@ -1,3 +1,4 @@
+import NiceModal from "@ebay/nice-modal-react";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,6 +20,7 @@ import {
 } from "@/entities/pushup";
 import {
 	defaultExerciseTypeDraft,
+	ExerciseDeleteDialog,
 	type ExerciseTypeDraft,
 	ExerciseTypeEditorFields,
 	MANAGE_EXERCISES_NS,
@@ -33,7 +35,6 @@ import {
 	resolveExerciseTypeColor,
 } from "@/shared/config/exercise-type-presets";
 import { PageHeader, PageHeaderBackLink, ScreenBody } from "@/shared/layout";
-import { ExerciseDeleteDialog } from "./ExerciseDeleteDialog";
 import { ExerciseDetailStatsSection } from "./ExerciseDetailStatsSection";
 import { ExercisePageSkeleton } from "./ExercisePageSkeleton";
 
@@ -61,7 +62,6 @@ export function ExercisePage() {
 
 	const [draft, setDraft] = useState<ExerciseTypeDraft>(defaultExerciseTypeDraft);
 	const [hexError, setHexError] = useState<string | null>(null);
-	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
 	useEffect(() => {
 		if (isNew) {
@@ -174,12 +174,20 @@ export function ExercisePage() {
 		const ok = await deleteExerciseType(exerciseId);
 		if (ok) {
 			toast.success(t("toastExerciseDeleted"));
-			setDeleteDialogOpen(false);
 			navigate("/", { replace: true });
+			return true;
 		} else {
 			toast.error(t("toastExerciseDeleteFailed"));
+			return false;
 		}
 	}
+
+	const handleDeleteButtonClick = () => {
+		void NiceModal.show(ExerciseDeleteDialog, {
+			onConfirmDelete: handleConfirmDelete,
+			t,
+		});
+	};
 
 	return (
 		<ScreenBody gap="comfortable">
@@ -238,17 +246,10 @@ export function ExercisePage() {
 						{t("archive")}
 					</Button>
 				)}
-				<Button type="button" variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+				<Button type="button" variant="destructive" onClick={handleDeleteButtonClick}>
 					{t("deleteExerciseForever")}
 				</Button>
 			</div>
-
-			<ExerciseDeleteDialog
-				open={deleteDialogOpen}
-				onOpenChange={setDeleteDialogOpen}
-				onConfirmDelete={handleConfirmDelete}
-				t={t}
-			/>
 		</ScreenBody>
 	);
 }

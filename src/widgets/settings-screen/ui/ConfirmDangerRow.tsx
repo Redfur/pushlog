@@ -1,22 +1,11 @@
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/shared/lib/utils";
+import { Button } from "@/components/ui/button";
+import { showConfirmActionModal } from "@/shared/ui/modals";
 
 type Props = {
 	triggerLabel: string;
+	description: string;
 	title: string;
 	body: string;
-	description: string;
 	confirmLabel: string;
 	cancelLabel: string;
 	onConfirm: () => void | Promise<void>;
@@ -24,41 +13,33 @@ type Props = {
 
 export function ConfirmDangerRow({
 	triggerLabel,
+	description,
 	title,
 	body,
-	description,
 	confirmLabel,
 	cancelLabel,
 	onConfirm,
 }: Props) {
+	const handleTriggerClick = () => {
+		void showConfirmActionModal({
+			title,
+			body,
+			confirmLabel,
+			cancelLabel,
+			onConfirm,
+			confirmVariant: "destructive",
+		});
+	};
+
 	return (
 		<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 			<div className="min-w-0 flex-1">
 				<p className="text-sm font-medium">{triggerLabel}</p>
 				<p className="text-muted-foreground mt-0.5 text-xs leading-snug">{description}</p>
 			</div>
-			<AlertDialog>
-				<AlertDialogTrigger asChild>
-					<Button type="button" variant="destructive" className="shrink-0">
-						{triggerLabel}
-					</Button>
-				</AlertDialogTrigger>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>{title}</AlertDialogTitle>
-						<AlertDialogDescription>{body}</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
-						<AlertDialogAction
-							className={cn(buttonVariants({ variant: "destructive" }))}
-							onClick={() => void onConfirm()}
-						>
-							{confirmLabel}
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+			<Button type="button" variant="destructive" className="shrink-0" onClick={handleTriggerClick}>
+				{triggerLabel}
+			</Button>
 		</div>
 	);
 }
