@@ -2,7 +2,7 @@ export type { PushlogBackupPayload } from "./backup";
 export {
 	buildPushlogBackupFilename,
 	createPushlogBackup,
-	parsePushlogBackup,
+	parsePushlogBackupAsync,
 	restorePushlogFromBackup,
 	serializePushlogBackup,
 } from "./backup";

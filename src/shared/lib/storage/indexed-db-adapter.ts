@@ -59,6 +59,13 @@ function getDb(): Promise<IDBPDatabase<PushlogDBSchema>> {
 
 const META_KEY = "app";
 
+export type ReplacePushlogDataInput = {
+	meta: PersistedMeta;
+	sets: PersistedSet[];
+	exerciseTypes: PersistedExerciseType[];
+	goalsByExerciseTypeId: Record<string, PersistedGoal>;
+};
+
 async function readMetaRow(db: IDBPDatabase<PushlogDBSchema>): Promise<MetaRowGoals> {
 	const row = await db.get("meta", META_KEY);
 	if (!row) {
@@ -172,4 +179,47 @@ export async function wipePushlogIndexedDatabase(): Promise<void> {
 	dbPromise = null;
 	singleton = null;
 	await deleteDB(DB_NAME);
+}
+
+export async function replacePushlogIndexedDatabaseData(
+	input: ReplacePushlogDataInput,
+	onProgress?: (value: number) => void,
+): Promise<void> {
+	const db = await getDb();
+	const totalSteps = input.exerciseTypes.length + input.sets.length + 3;
+	let doneSteps = 0;
+	const emit = () => {
+		onProgress?.(Math.min(100, Math.round((doneSteps / Math.max(totalSteps, 1)) * 100)));
+	};
+
+	const tx = db.transaction(["sets", "exerciseTypes", "meta"], "readwrite");
+	const setsStore = tx.objectStore("sets");
+	const exerciseTypesStore = tx.objectStore("exerciseTypes");
+	const metaStore = tx.objectStore("meta");
+
+	await Promise.all([setsStore.clear(), exerciseTypesStore.clear(), metaStore.clear()]);
+	doneSteps += 1;
+	emit();
+
+	for (const row of input.exerciseTypes) {
+		await exerciseTypesStore.put(row);
+		doneSteps += 1;
+		emit();
+	}
+
+	for (const row of input.sets) {
+		await setsStore.put(row);
+		doneSteps += 1;
+		emit();
+	}
+
+	await metaStore.put(
+		buildMetaRow({ key: META_KEY, schemaVersion: input.meta.schemaVersion }, { ...input.goalsByExerciseTypeId }),
+	);
+	doneSteps += 1;
+	emit();
+
+	await tx.done;
+	doneSteps += 1;
+	emit();
 }

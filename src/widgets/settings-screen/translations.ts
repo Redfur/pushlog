@@ -19,6 +19,8 @@ export const settingsScreenTranslations = {
 		backupHint: "Экспортируйте данные в JSON и при необходимости восстановите их из файла.",
 		backupExport: "Экспортировать JSON",
 		backupImport: "Импортировать JSON",
+		backupExportProgressLabel: "Подготовка файла резервной копии...",
+		backupImportProgressLabel: "Импорт данных...",
 		backupImportDialogTitle: "Импортировать резервную копию?",
 		backupImportDialogBody:
 			"Текущие данные в IndexedDB будут полностью заменены содержимым выбранного файла. Это действие нельзя отменить.",

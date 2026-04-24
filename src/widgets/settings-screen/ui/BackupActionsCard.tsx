@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { usePushlogStore } from "@/entities/pushup";
 import { METRIKA_GOALS } from "@/shared/config/metrika-goals";
 import { pushlogAnalytics } from "@/shared/lib/pushlog-analytics";
@@ -20,7 +21,7 @@ import {
 	buildPushlogBackupFilename,
 	createPushlogBackup,
 	type PushlogBackupPayload,
-	parsePushlogBackup,
+	parsePushlogBackupAsync,
 	restorePushlogFromBackup,
 	serializePushlogBackup,
 } from "@/shared/lib/storage";
@@ -31,7 +32,10 @@ export function BackupActionsCard() {
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const [importDialogOpen, setImportDialogOpen] = useState(false);
 	const [pendingImport, setPendingImport] = useState<PushlogBackupPayload | null>(null);
+	const [isExporting, setIsExporting] = useState(false);
 	const [isImporting, setIsImporting] = useState(false);
+	const [exportProgress, setExportProgress] = useState(0);
+	const [importProgress, setImportProgress] = useState(0);
 	const hydrate = usePushlogStore((s) => s.hydrate);
 
 	const pendingSummary = useMemo(() => {
@@ -52,9 +56,14 @@ export function BackupActionsCard() {
 	}, [pendingImport]);
 
 	const handleExport = async () => {
+		if (isExporting || isImporting) return;
+		setIsExporting(true);
+		setExportProgress(5);
 		try {
 			const payload = await createPushlogBackup();
+			setExportProgress(45);
 			const content = serializePushlogBackup(payload);
+			setExportProgress(80);
 			const blob = new Blob([content], { type: "application/json" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -62,6 +71,7 @@ export function BackupActionsCard() {
 			a.download = buildPushlogBackupFilename();
 			a.click();
 			URL.revokeObjectURL(url);
+			setExportProgress(100);
 			pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsDataExportBackup, {
 				sets_count: payload.sets.length,
 				exercise_types_count: payload.exerciseTypes.length,
@@ -70,6 +80,11 @@ export function BackupActionsCard() {
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			toast.error(t("backupExportFailed", { message }));
+		} finally {
+			window.setTimeout(() => {
+				setIsExporting(false);
+				setExportProgress(0);
+			}, 250);
 		}
 	};
 
@@ -78,6 +93,7 @@ export function BackupActionsCard() {
 	};
 
 	const handleImportFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+		if (isImporting || isExporting) return;
 		const file = event.target.files?.[0];
 		event.target.value = "";
 		if (!file) {
@@ -86,11 +102,15 @@ export function BackupActionsCard() {
 		}
 
 		try {
+			setImportProgress(10);
 			const raw = await file.text();
-			const backup = parsePushlogBackup(raw);
+			setImportProgress(35);
+			const backup = await parsePushlogBackupAsync(raw);
+			setImportProgress(50);
 			setPendingImport(backup);
 			setImportDialogOpen(true);
 		} catch (error) {
+			setImportProgress(0);
 			const message = error instanceof Error ? error.message : t("backupImportReadFailed");
 			toast.error(t("backupImportFailed", { message }));
 		}
@@ -102,8 +122,13 @@ export function BackupActionsCard() {
 
 		try {
 			const backup = pendingImport;
-			await restorePushlogFromBackup(backup);
+			setImportProgress(55);
+			await restorePushlogFromBackup(backup, (value) => {
+				setImportProgress(Math.max(55, Math.round(55 + value * 0.4)));
+			});
+			setImportProgress(97);
 			await hydrate();
+			setImportProgress(100);
 			pushlogAnalytics.reachGoal(METRIKA_GOALS.settingsDataImportBackup, {
 				sets_count: backup.sets.length,
 				exercise_types_count: backup.exerciseTypes.length,
@@ -115,7 +140,10 @@ export function BackupActionsCard() {
 			const message = error instanceof Error ? error.message : t("backupImportReadFailed");
 			toast.error(t("backupImportFailed", { message }));
 		} finally {
-			setIsImporting(false);
+			window.setTimeout(() => {
+				setIsImporting(false);
+				setImportProgress(0);
+			}, 250);
 		}
 	};
 
@@ -127,10 +155,15 @@ export function BackupActionsCard() {
 					<CardDescription className="text-xs">{t("backupHint")}</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col gap-2 sm:flex-row">
-					<Button type="button" variant="outline" onClick={() => void handleExport()}>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => void handleExport()}
+						disabled={isExporting || isImporting}
+					>
 						{t("backupExport")}
 					</Button>
-					<Button type="button" variant="outline" onClick={handleImportClick}>
+					<Button type="button" variant="outline" onClick={handleImportClick} disabled={isExporting || isImporting}>
 						{t("backupImport")}
 					</Button>
 					<input
@@ -141,6 +174,24 @@ export function BackupActionsCard() {
 						onChange={(event) => void handleImportFileChange(event)}
 					/>
 				</CardContent>
+				{(isExporting || isImporting) && (
+					<CardContent className="pt-0">
+						<div className="space-y-2">
+							{isExporting ? (
+								<>
+									<p className="text-muted-foreground text-xs">{t("backupExportProgressLabel")}</p>
+									<Progress value={exportProgress} />
+								</>
+							) : null}
+							{isImporting ? (
+								<>
+									<p className="text-muted-foreground text-xs">{t("backupImportProgressLabel")}</p>
+									<Progress value={importProgress} />
+								</>
+							) : null}
+						</div>
+					</CardContent>
+				)}
 			</Card>
 
 			<AlertDialog
@@ -164,7 +215,7 @@ export function BackupActionsCard() {
 						</div>
 					) : null}
 					<AlertDialogFooter>
-						<AlertDialogCancel disabled={isImporting}>{t("cancelDialog")}</AlertDialogCancel>
+						<AlertDialogCancel disabled={isImporting || isExporting}>{t("cancelDialog")}</AlertDialogCancel>
 						<AlertDialogAction
 							className="bg-destructive/10 text-destructive hover:bg-destructive/20"
 							onClick={(event) => {

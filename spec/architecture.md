@@ -69,6 +69,8 @@
 
 **IndexedDB** (через `idb`), адаптер: **`src/shared/lib/storage/`** (`getStorageAdapter`, `indexed-db-adapter`, `contract.ts`, `schema.ts`), плюс backup-модуль (`backup.ts`) для локального экспорта/импорта JSON.
 
+Для restore используется транзакционная замена данных в текущей БД (`replacePushlogIndexedDatabaseData`) без `deleteDB`, что снижает задержки импорта. Разбор JSON при импорте вынесен в `backup-parse.worker.ts` (с fallback на main thread).
+
 Объекты хранения (логически):
 
 - `sets` — подходы
