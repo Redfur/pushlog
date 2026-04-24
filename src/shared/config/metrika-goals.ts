@@ -21,6 +21,8 @@ export const METRIKA_GOALS = {
 	settingsDataClearIndexedDb: "settings/data/clear_indexed_db",
 	settingsDataClearLocalPreferences: "settings/data/clear_local_preferences",
 	settingsDataClearAll: "settings/data/clear_all",
+	settingsDataExportBackup: "settings/data/export_backup",
+	settingsDataImportBackup: "settings/data/import_backup",
 	settingsAnalyticsToggle: "settings/analytics/toggle",
 } as const;
 

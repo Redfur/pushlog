@@ -67,7 +67,7 @@
 
 ## Персистентность
 
-**IndexedDB** (через `idb`), адаптер: **`src/shared/lib/storage/`** (`getStorageAdapter`, `indexed-db-adapter`, `contract.ts`, `schema.ts`).
+**IndexedDB** (через `idb`), адаптер: **`src/shared/lib/storage/`** (`getStorageAdapter`, `indexed-db-adapter`, `contract.ts`, `schema.ts`), плюс backup-модуль (`backup.ts`) для локального экспорта/импорта JSON.
 
 Объекты хранения (логически):
 
