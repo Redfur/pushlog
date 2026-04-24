@@ -1,3 +1,4 @@
+import NiceModal, { useModal } from "@ebay/nice-modal-react";
 import {
 	AlertDialog,
 	AlertDialogCancel,
@@ -12,15 +13,31 @@ import { Button } from "@/components/ui/button";
 type TFunction = (key: string) => string;
 
 type Props = {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	onConfirmDelete: () => void | Promise<void>;
+	onConfirmDelete: () => boolean | Promise<boolean>;
 	t: TFunction;
 };
 
-export function ExerciseDeleteDialog({ open, onOpenChange, onConfirmDelete, t }: Props) {
+export const ExerciseDeleteDialog = NiceModal.create(({ onConfirmDelete, t }: Props) => {
+	const modal = useModal();
+
+	const handleOpenChange = (open: boolean) => {
+		if (open) return;
+		modal.resolve(false);
+		void modal.hide().then(() => {
+			modal.remove();
+		});
+	};
+
+	const handleConfirmDelete = async () => {
+		const ok = await onConfirmDelete();
+		if (!ok) return;
+		modal.resolve(true);
+		await modal.hide();
+		modal.remove();
+	};
+
 	return (
-		<AlertDialog open={open} onOpenChange={onOpenChange}>
+		<AlertDialog open={modal.visible} onOpenChange={handleOpenChange}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{t("deleteExerciseDialogTitle")}</AlertDialogTitle>
@@ -28,11 +45,11 @@ export function ExerciseDeleteDialog({ open, onOpenChange, onConfirmDelete, t }:
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogCancel type="button">{t("cancel")}</AlertDialogCancel>
-					<Button type="button" variant="destructive" onClick={() => void onConfirmDelete()}>
+					<Button type="button" variant="destructive" onClick={() => void handleConfirmDelete()}>
 						{t("deleteExerciseConfirm")}
 					</Button>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
 	);
-}
+});
