@@ -11,6 +11,7 @@ import { wipePushlogIndexedDatabase } from "@/shared/lib/storage";
 import { TIMEZONE_AUTO_SELECT_VALUE } from "@/shared/lib/timezone-preference";
 import { SETTINGS_SCREEN_NS } from "../translations";
 import { AnalyticsGoalsRow } from "./AnalyticsGoalsRow";
+import { BackupActionsCard } from "./BackupActionsCard";
 import { ConfirmDangerRow } from "./ConfirmDangerRow";
 import { SettingsAboutFooter } from "./SettingsAboutFooter";
 import { ThemePreferenceSelect } from "./ThemePreferenceSelect";
@@ -87,6 +88,8 @@ export function SettingsScreen() {
 			</Card>
 
 			<AnalyticsGoalsRow />
+
+			<BackupActionsCard />
 
 			<Card className="border-destructive/40">
 				<CardHeader className="pb-2">
