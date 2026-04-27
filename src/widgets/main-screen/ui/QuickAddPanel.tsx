@@ -69,7 +69,7 @@ export function QuickAddPanel({ canAddSet, dayAllowsLogging, trackWeight, exerci
 			return;
 		}
 		if (debounceRef.current) clearTimeout(debounceRef.current);
-		debounceRef.current = window.setTimeout(() => {
+		debounceRef.current = setTimeout(() => {
 			saveQuickAddDraft(exerciseTypeId, { reps: draftReps, weight: draftWeight });
 			debounceRef.current = null;
 		}, DRAFT_SAVE_MS);

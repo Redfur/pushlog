@@ -25,6 +25,7 @@ vi.mock("./backup-parse", () => ({
 import {
 	buildPushlogBackupFilename,
 	createPushlogBackup,
+	type PushlogBackupPayload,
 	parsePushlogBackupAsync,
 	restorePushlogFromBackup,
 	serializePushlogBackup,
@@ -130,11 +131,7 @@ describe("backup", () => {
 	});
 
 	test("parsePushlogBackupAsync resolves worker success response", async () => {
-		let instance: {
-			onmessage?: (event: MessageEvent<{ ok: true; payload: { from: string } }>) => void;
-			terminate: ReturnType<typeof vi.fn>;
-			postMessage: (message: { raw: string }) => void;
-		} | null = null;
+		let instance: WorkerMock | null = null;
 
 		class WorkerMock {
 			onmessage?: (event: MessageEvent<{ ok: true; payload: { from: string } }>) => void;
@@ -155,7 +152,7 @@ describe("backup", () => {
 		vi.stubGlobal("Worker", WorkerMock);
 
 		await expect(parsePushlogBackupAsync("raw-json")).resolves.toEqual({ from: "worker" });
-		expect(instance?.terminate).toHaveBeenCalledTimes(1);
+		expect((instance as unknown as WorkerMock)?.terminate).toHaveBeenCalledTimes(1);
 	});
 
 	test("parsePushlogBackupAsync falls back to sync parse on worker error", async () => {
@@ -178,14 +175,47 @@ describe("backup", () => {
 
 	test("restorePushlogFromBackup forwards payload to indexeddb replace", async () => {
 		const progress = vi.fn();
-		const backup = {
+		const backup: PushlogBackupPayload = {
 			format: "pushlog-backup",
 			version: 1,
 			exportedAt: "2026-01-01T00:00:00.000Z",
 			meta: { schemaVersion: 1 },
-			sets: [{ id: "s1" }],
-			exerciseTypes: [{ id: "et1" }],
-			goalsByExerciseTypeId: { et1: { id: "g1" } },
+			sets: [
+				{
+					id: "s1",
+					exerciseTypeId: "",
+					reps: 0,
+					createdAt: "",
+					dayKey: "",
+					version: 0,
+				},
+			],
+			exerciseTypes: [
+				{
+					id: "et1",
+					name: "",
+					iconDisplay: "lucide",
+					iconKey: "",
+					iconEmojiText: "",
+					nameInitialGlyph: "",
+					colorKind: "preset",
+					colorValue: "",
+					trackWeightInSets: false,
+					archivedAt: null,
+					createdAt: "",
+					updatedAt: "",
+					version: 0,
+				},
+			],
+			goalsByExerciseTypeId: {
+				et1: {
+					id: "g1",
+					exerciseTypeId: "",
+					targetRepsPerDay: 0,
+					effectiveFrom: "",
+					updatedAt: "",
+				},
+			},
 		};
 
 		await restorePushlogFromBackup(backup, progress);

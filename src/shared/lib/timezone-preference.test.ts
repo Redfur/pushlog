@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { clearStoredTimeZone, isValidTimeZoneId, readStoredTimeZone, writeStoredTimeZone } from "./timezone-preference";
 
 type LocalStorageLike = {
