@@ -17,6 +17,8 @@
     "check": "biome check",
     "check:fix": "biome check --write",
     "knip": "knip",
+    "test": "vitest",
+    "test:run": "vitest run",
     "preview": "vite preview",
     "release": "bash scripts/release.sh"
   },
@@ -56,6 +58,7 @@
     "lefthook": "^2.1.4",
     "shadcn": "^4.0.8",
     "typescript": "~5.9.3",
+    "vitest": "^3.2.4",
     "vite": "^8.0.0",
     "vite-plugin-biome": "^1.2.0",
     "vite-plugin-pwa": "^1.2.0"

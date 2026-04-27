@@ -34,6 +34,10 @@ const base = process.env.VITE_BASE_PATH?.replace(/\/?$/, "/") ?? "/";
 
 export default defineConfig({
 	base,
+	test: {
+		environment: "node",
+		include: ["src/**/*.test.ts"],
+	},
 	define: {
 		"import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
 		"import.meta.env.VITE_REPO_URL": JSON.stringify(repoUrl),
