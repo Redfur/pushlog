@@ -19,8 +19,6 @@ function supportedTimeZones(): string[] {
 /** Проверка, что строка — допустимая IANA-зона в текущей среде. */
 export function isValidTimeZoneId(value: string): boolean {
 	if (!value) return false;
-	// UTC всегда валидная timezone
-	if (value === "UTC") return true;
 	const list = supportedTimeZones();
 	if (list.length > 0) return list.includes(value);
 	try {

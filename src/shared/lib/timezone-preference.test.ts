@@ -22,23 +22,12 @@ function mockLocalStorage(store: Record<string, string> = {}): LocalStorageLike 
 describe("timezone-preference", () => {
 	const TEST_TIMEZONE = "Europe/London";
 
-	beforeEach(() => {
-		// Мокаем Intl.DateTimeFormat чтобы возвращать TEST_TIMEZONE
-		vi.stubGlobal("Intl", {
-			...Intl,
-			DateTimeFormat: vi.fn(() => ({
-				resolvedOptions: () => ({ timeZone: TEST_TIMEZONE }),
-			})),
-		});
-	});
-
 	afterEach(() => {
 		vi.unstubAllGlobals();
 	});
 
 	test("validates timezone ids", () => {
 		expect(isValidTimeZoneId(TEST_TIMEZONE)).toBe(true);
-		expect(isValidTimeZoneId("UTC")).toBe(true); // UTC должен быть валидным
 		expect(isValidTimeZoneId("Bad/Timezone")).toBe(false);
 	});
 
