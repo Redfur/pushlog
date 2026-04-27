@@ -32,7 +32,7 @@ jobs:
         run: npm run knip
   test:
     runs-on: ubuntu-latest
-    needs: lint  # Ждем успешного завершения lint, но можно запустить параллельно убрав needs
+    needs: lint
     steps:
       - uses: actions/checkout@v6
 
@@ -50,7 +50,7 @@ jobs:
           CI: true
   build:
     runs-on: ubuntu-latest
-    needs: [lint, test]  # Ждем успешного завершения и lint, и test
+    needs: [lint, test]
     env:
       VITE_REPO_URL: https://github.com/${{ github.repository }}
     steps:
