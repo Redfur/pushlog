@@ -25,6 +25,8 @@ npm install
 | `npm run preview` | Просмотр production-сборки |
 | `npm run check` | Biome: линт и форматирование |
 | `npm run check:fix` | То же с автоисправлением |
+| `npm run test` | Тесты в watch-режиме (Vitest) |
+| `npm run test:run` | Однократный прогон тестов (Vitest) |
 | `npm run knip` | Поиск неиспользуемых экспортов и файлов (см. `knip.json`) |
 | `npm run release -- <версия>` | Проверки и создание тега релиза (см. ниже) |
 
@@ -62,5 +64,11 @@ npm install
 
 - **Спецификации (источник сценариев и домена):** [spec/README.md](spec/README.md)
 - **Правила кода и FSD:** [docs/coding-standards.md](docs/coding-standards.md)
+
+### Тесты (кратко)
+
+- Используется **Vitest** (`npm run test`, `npm run test:run`).
+- Приоритет покрытия: сначала критичный домен и целевые действия пользователя (store/actions, статистика, dayKey/timezone, backup-валидация), затем остальная доменная логика.
+- В CI тесты выполняются отдельным шагом после `npm run check`.
 
 При изменении поведения или структуры проекта обновляйте соответствующие файлы в `spec/`.
