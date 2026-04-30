@@ -17,6 +17,8 @@
     "check": "biome check",
     "check:fix": "biome check --write",
     "knip": "knip",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "release": "bash scripts/release.sh"
   },
@@ -51,6 +53,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "globals": "^17.4.0",
     "knip": "^6.1.0",
     "lefthook": "^2.1.4",
@@ -58,7 +61,8 @@
     "typescript": "~5.9.3",
     "vite": "^8.0.0",
     "vite-plugin-biome": "^1.2.0",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.1.5"
   },
   "overrides": {
     "@tailwindcss/vite": {

@@ -3,9 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
 import biomePlugin from "vite-plugin-biome";
 import { VitePWA } from "vite-plugin-pwa";
+import { defineConfig } from "vitest/config";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(path.join(rootDir, "package.json"), "utf-8")) as {
@@ -34,6 +34,13 @@ const base = process.env.VITE_BASE_PATH?.replace(/\/?$/, "/") ?? "/";
 
 export default defineConfig({
 	base,
+	test: {
+		pool: "threads",
+		coverage: {
+			provider: "v8",
+			reporter: ["text"],
+		},
+	},
 	define: {
 		"import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
 		"import.meta.env.VITE_REPO_URL": JSON.stringify(repoUrl),
