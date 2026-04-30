@@ -36,6 +36,10 @@ export default defineConfig({
 	base,
 	test: {
 		pool: "threads",
+		coverage: {
+			provider: "v8",
+			reporter: ["text"],
+		},
 	},
 	define: {
 		"import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),

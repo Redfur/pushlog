@@ -10,22 +10,6 @@ vi.mock("@/shared/lib/theme", () => ({
 	initTheme: testMocks.initThemeMock,
 }));
 
-type LocalStorageLike = {
-	removeItem: (key: string) => void;
-};
-
-function mockLocalStorage(): { localStorage: LocalStorageLike; removed: string[] } {
-	const removed: string[] = [];
-	return {
-		localStorage: {
-			removeItem: (key) => {
-				removed.push(key);
-			},
-		},
-		removed,
-	};
-}
-
 describe("clearClientStoragePreferences", () => {
 	afterEach(() => {
 		vi.unstubAllGlobals();
@@ -33,9 +17,12 @@ describe("clearClientStoragePreferences", () => {
 	});
 
 	test("removes all known client-storage keys and re-inits theme", () => {
-		const { localStorage, removed } = mockLocalStorage();
+		const removed: string[] = [];
 		const dispatchEvent = vi.fn();
-		vi.stubGlobal("localStorage", localStorage);
+
+		vi.stubGlobal("localStorage", {
+			removeItem: (key: string) => removed.push(key),
+		});
 		vi.stubGlobal("window", { dispatchEvent });
 		vi.stubGlobal(
 			"CustomEvent",

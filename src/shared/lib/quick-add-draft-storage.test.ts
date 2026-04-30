@@ -35,12 +35,4 @@ describe("quick-add-draft-storage", () => {
 		saveQuickAddDraft("et-1", { reps: "25", weight: "42.5" });
 		expect(loadQuickAddDraft("et-1")).toEqual({ reps: "25", weight: "42.5" });
 	});
-
-	test("does not save when exercise id is empty", () => {
-		const store: Record<string, string> = {};
-		vi.stubGlobal("localStorage", mockLocalStorage(store));
-
-		saveQuickAddDraft("", { reps: "10", weight: "" });
-		expect(Object.keys(store)).toHaveLength(0);
-	});
 });

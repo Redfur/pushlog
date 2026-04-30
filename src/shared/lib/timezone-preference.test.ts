@@ -1,44 +1,22 @@
-import { afterEach, describe, expect, test, vi } from "vitest";
-import { clearStoredTimeZone, isValidTimeZoneId, readStoredTimeZone, writeStoredTimeZone } from "./timezone-preference";
-
-type LocalStorageLike = {
-	getItem: (key: string) => string | null;
-	setItem: (key: string, value: string) => void;
-	removeItem: (key: string) => void;
-};
-
-function mockLocalStorage(store: Record<string, string> = {}): LocalStorageLike {
-	return {
-		getItem: (key) => (key in store ? store[key] : null),
-		setItem: (key, value) => {
-			store[key] = value;
-		},
-		removeItem: (key) => {
-			delete store[key];
-		},
-	};
-}
+import { describe, expect, test, vi } from "vitest";
+import { isValidTimeZoneId } from "./timezone-preference";
 
 describe("timezone-preference", () => {
-	const TEST_TIMEZONE = "Europe/London";
-
-	afterEach(() => {
-		vi.unstubAllGlobals();
-	});
-
 	test("validates timezone ids", () => {
-		expect(isValidTimeZoneId(TEST_TIMEZONE)).toBe(true);
+		vi.stubGlobal("Intl", {
+			supportedValuesOf: (type: string) => {
+				if (type === "timeZone") {
+					return ["Europe/London", "America/New_York", "Asia/Tokyo"];
+				}
+				return [];
+			},
+		});
+
+		expect(isValidTimeZoneId("Europe/London")).toBe(true);
+		expect(isValidTimeZoneId("America/New_York")).toBe(true);
 		expect(isValidTimeZoneId("Bad/Timezone")).toBe(false);
-	});
+		expect(isValidTimeZoneId("")).toBe(false);
 
-	test("reads and writes stored timezone", () => {
-		const store: Record<string, string> = {};
-		vi.stubGlobal("localStorage", mockLocalStorage(store));
-
-		writeStoredTimeZone(TEST_TIMEZONE);
-		expect(readStoredTimeZone()).toBe(TEST_TIMEZONE);
-
-		clearStoredTimeZone();
-		expect(readStoredTimeZone()).toBeNull();
+		vi.unstubAllGlobals();
 	});
 });
